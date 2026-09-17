@@ -35,24 +35,9 @@ export const TitleBar: React.FC = () => {
       data-tauri-drag-region
       className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-white/[0.07] bg-[#0D1117]/90 backdrop-blur-xl relative z-30 select-none"
     >
-      {/* Left: macOS Traffic Lights + Dayframe Brand with Neon Mint Pulse */}
-      <div data-tauri-drag-region className="flex items-center gap-2.5 w-60">
-        <div className="flex items-center gap-2 mr-2">
-          <button
-            className="w-3 h-3 rounded-full bg-[#FF5F57] border border-[#E0443E]/60 flex items-center justify-center transition-all hover:brightness-110 active:brightness-90 cursor-pointer shadow-xs"
-            title="Close window"
-          />
-          <button
-            className="w-3 h-3 rounded-full bg-[#FEBC2E] border border-[#D89E24]/60 flex items-center justify-center transition-all hover:brightness-110 active:brightness-90 cursor-pointer shadow-xs"
-            title="Minimize window"
-          />
-          <button
-            className="w-3 h-3 rounded-full bg-[#28C840] border border-[#1AAB29]/60 flex items-center justify-center transition-all hover:brightness-110 active:brightness-90 cursor-pointer shadow-xs"
-            title="Zoom window"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 pl-1">
+      {/* Left: Native macOS Traffic Lights space + Dayframe Brand with Neon Mint Pulse */}
+      <div data-tauri-drag-region className="flex items-center gap-2.5 w-60 pl-[70px]">
+        <div className="flex items-center gap-2">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_8px_#00E599]" />
