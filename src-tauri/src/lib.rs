@@ -4,6 +4,34 @@ use tauri::{
     Emitter, Manager,
 };
 
+pub struct TrayMenuHandles {
+    pub toggle_timer_item: MenuItem<tauri::Wry>,
+    pub skip_break_item: MenuItem<tauri::Wry>,
+}
+
+#[derive(serde::Deserialize)]
+pub struct TrayStatePayload {
+    pub title: String,
+    pub timer_label: String,
+    pub break_label: String,
+    pub break_enabled: bool,
+}
+
+#[tauri::command]
+fn update_tray_state(
+    app: tauri::AppHandle,
+    state: tauri::State<TrayMenuHandles>,
+    payload: TrayStatePayload,
+) -> Result<(), String> {
+    if let Some(tray) = app.tray_by_id("main-tray") {
+        let _ = tray.set_title(Some(&payload.title));
+    }
+    let _ = state.toggle_timer_item.set_text(&payload.timer_label);
+    let _ = state.skip_break_item.set_text(&payload.break_label);
+    let _ = state.skip_break_item.set_enabled(payload.break_enabled);
+    Ok(())
+}
+
 #[tauri::command]
 fn update_tray_title(app: tauri::AppHandle, title: String) -> Result<(), String> {
     if let Some(tray) = app.tray_by_id("main-tray") {
@@ -46,16 +74,64 @@ fn toggle_popover(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+fn handle_tray_action(app: &tauri::AppHandle, action: &str) {
+    match action {
+        "toggle_timer" => {
+            let _ = app.emit("tray-action", "toggle_timer");
+            if let Some(main) = app.get_webview_window("main") {
+                let _ = main.eval(
+                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'toggle_timer' })); \
+                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().toggleTimer(); }"
+                );
+            }
+            if let Some(popover) = app.get_webview_window("popover") {
+                let _ = popover.eval(
+                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'toggle_timer' })); \
+                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().toggleTimer(); }"
+                );
+            }
+        }
+        "skip_break" => {
+            let _ = app.emit("tray-action", "skip_break");
+            if let Some(main) = app.get_webview_window("main") {
+                let _ = main.eval(
+                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'skip_break' })); \
+                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().setMode('focus'); }"
+                );
+            }
+            if let Some(popover) = app.get_webview_window("popover") {
+                let _ = popover.eval(
+                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'skip_break' })); \
+                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().setMode('focus'); }"
+                );
+            }
+        }
+        "open_dashboard" => {
+            if let Some(main) = app.get_webview_window("main") {
+                let _ = main.show();
+                let _ = main.set_focus();
+            }
+            if let Some(popover) = app.get_webview_window("popover") {
+                let _ = popover.hide();
+            }
+        }
+        "quit" => {
+            app.exit(0);
+        }
+        _ => {}
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             // Context menu for right-click on tray icon
-            let toggle_timer = MenuItem::with_id(app, "toggle_timer", "Toggle Timer", true, None::<&str>)?;
-            let skip_break = MenuItem::with_id(app, "skip_break", "Skip Break", true, None::<&str>)?;
+            let toggle_timer = MenuItem::with_id(app, "toggle_timer", "Start Focus", true, None::<&str>)?;
+            let skip_break = MenuItem::with_id(app, "skip_break", "Skip Break", false, None::<&str>)?;
             let sep1 = PredefinedMenuItem::separator(app)?;
-            let open_dashboard = MenuItem::with_id(app, "open_dashboard", "Open Full Dashboard", true, None::<&str>)?;
+            let open_dashboard = MenuItem::with_id(app, "open_dashboard", "Open Dashboard", true, None::<&str>)?;
             let sep2 = PredefinedMenuItem::separator(app)?;
             let quit = MenuItem::with_id(app, "quit", "Quit Dayframe", true, None::<&str>)?;
 
@@ -63,6 +139,12 @@ pub fn run() {
                 app,
                 &[&toggle_timer, &skip_break, &sep1, &open_dashboard, &sep2, &quit],
             )?;
+
+            // Store references to the dynamic menu items in Tauri managed state
+            app.manage(TrayMenuHandles {
+                toggle_timer_item: toggle_timer,
+                skip_break_item: skip_break,
+            });
 
             let icon = app
                 .default_window_icon()
@@ -76,27 +158,7 @@ pub fn run() {
                 .show_menu_on_left_click(false)
                 .title("Dayframe")
                 .on_menu_event(|app, event| {
-                    match event.id.as_ref() {
-                        "toggle_timer" => {
-                            let _ = app.emit("tray-action", "toggle_timer");
-                        }
-                        "skip_break" => {
-                            let _ = app.emit("tray-action", "skip_break");
-                        }
-                        "open_dashboard" => {
-                            if let Some(main) = app.get_webview_window("main") {
-                                let _ = main.show();
-                                let _ = main.set_focus();
-                            }
-                            if let Some(popover) = app.get_webview_window("popover") {
-                                let _ = popover.hide();
-                            }
-                        }
-                        "quit" => {
-                            app.exit(0);
-                        }
-                        _ => {}
-                    }
+                    handle_tray_action(app, event.id.as_ref());
                 })
                 .on_tray_icon_event(|tray, event| {
                     if let TrayIconEvent::Click {
@@ -132,6 +194,9 @@ pub fn run() {
 
             Ok(())
         })
+        .on_menu_event(|app, event| {
+            handle_tray_action(app, event.id.as_ref());
+        })
         .on_window_event(|window, event| {
             if window.label() == "main" {
                 if let tauri::WindowEvent::CloseRequested { api, .. } = event {
@@ -145,6 +210,7 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            update_tray_state,
             update_tray_title,
             open_full_dashboard,
             hide_popover,

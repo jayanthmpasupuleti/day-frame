@@ -8,6 +8,11 @@ import { TrayPopover } from './components/TrayPopover';
 import { useTimerEngine } from './hooks/useTimerEngine';
 import { useCrossWindowSync } from './hooks/useCrossWindowSync';
 import { useTraySync } from './hooks/useTraySync';
+import { useDayframeStore } from './store/useDayframeStore';
+
+if (typeof window !== 'undefined') {
+  (window as any).__DAYFRAME_STORE__ = useDayframeStore;
+}
 
 export const App: React.FC = () => {
   const [isPopover, setIsPopover] = useState(() => {
