@@ -1,0 +1,180 @@
+import React from 'react';
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Headphones,
+} from 'lucide-react';
+import { useDayframeStore } from '../store/useDayframeStore';
+
+export const TitleBar: React.FC = () => {
+  const {
+    pomodoro,
+    togglePomodoroRunning,
+    resetPomodoro,
+    setPomodoroMode,
+    audio,
+    toggleAudioPlaying,
+  } = useDayframeStore();
+
+  const minutes = Math.floor(pomodoro.timeLeft / 60);
+  const seconds = pomodoro.timeLeft % 60;
+  const isUntimed = pomodoro.timeLeft === 0;
+  const formattedTime = isUntimed
+    ? 'Untimed'
+    : `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  const activeTrack =
+    audio.audioTracks.find((t) => t.id === audio.activeTrackId) || audio.audioTracks[0];
+  const isMuted = audio.volume === 0;
+
+  return (
+    <header
+      data-tauri-drag-region
+      className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-white/[0.07] bg-[#0D1117]/90 backdrop-blur-xl relative z-30 select-none"
+    >
+      {/* Left: macOS Traffic Lights + Dayframe Brand with Neon Mint Pulse */}
+      <div data-tauri-drag-region className="flex items-center gap-2.5 w-60">
+        <div className="flex items-center gap-2 mr-2">
+          <button
+            className="w-3 h-3 rounded-full bg-[#FF5F57] border border-[#E0443E]/60 flex items-center justify-center transition-all hover:brightness-110 active:brightness-90 cursor-pointer shadow-xs"
+            title="Close window"
+          />
+          <button
+            className="w-3 h-3 rounded-full bg-[#FEBC2E] border border-[#D89E24]/60 flex items-center justify-center transition-all hover:brightness-110 active:brightness-90 cursor-pointer shadow-xs"
+            title="Minimize window"
+          />
+          <button
+            className="w-3 h-3 rounded-full bg-[#28C840] border border-[#1AAB29]/60 flex items-center justify-center transition-all hover:brightness-110 active:brightness-90 cursor-pointer shadow-xs"
+            title="Zoom window"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 pl-1">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_8px_#00E599]" />
+          </span>
+          <span className="font-semibold text-[13px] tracking-tight text-white">
+            Dayframe
+          </span>
+          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/[0.05] border border-white/[0.07] text-[#94A3B8]">
+            v2.0
+          </span>
+        </div>
+      </div>
+
+      {/* Center: Live Pomodoro Pill */}
+      <div data-tauri-drag-region className="flex items-center justify-center">
+        <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#161B22] border border-white/[0.08] shadow-card backdrop-blur-md">
+          {/* Mode Pill Tag */}
+          <button
+            onClick={() => {
+              const nextMode =
+                pomodoro.mode === 'focus'
+                  ? 'shortBreak'
+                  : pomodoro.mode === 'shortBreak'
+                  ? 'longBreak'
+                  : 'focus';
+              setPomodoroMode(nextMode);
+            }}
+            className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full transition-all cursor-pointer ${
+              isUntimed
+                ? 'text-[#A78BFA] bg-[#A78BFA]/15 border border-[#A78BFA]/30'
+                : pomodoro.mode === 'focus'
+                ? 'text-[#00E599] bg-[#00E599]/15 border border-[#00E599]/30'
+                : 'text-[#F59E0B] bg-[#F59E0B]/15 border border-[#F59E0B]/30'
+            }`}
+            title="Switch Focus/Break interval"
+          >
+            {isUntimed ? 'Untimed' : pomodoro.mode === 'focus' ? 'Focus' : pomodoro.mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+          </button>
+
+          {/* Tabular Mono Timer */}
+          <span className="text-[13.5px] font-mono font-bold tracking-tight text-white tabular-nums px-0.5">
+            {formattedTime}
+          </span>
+
+          {/* Play/Pause Pill Button (only active if not untimed) */}
+          {!isUntimed && (
+            <button
+              onClick={togglePomodoroRunning}
+              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight transition-all cursor-pointer active:scale-95 ${
+                pomodoro.isRunning
+                  ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 hover:bg-[#F59E0B]/30'
+                  : 'bg-[#00E599] text-black hover:bg-[#4DFFB2] shadow-mint-btn'
+              }`}
+              title={pomodoro.isRunning ? 'Pause timer' : 'Start focus timer'}
+            >
+              {pomodoro.isRunning ? (
+                <>
+                  <Pause className="w-2.5 h-2.5 fill-current" />
+                  <span>Pause</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-2.5 h-2.5 fill-current ml-0.5" />
+                  <span>Start</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Cycle Indicator */}
+          <span className="text-[11px] font-mono text-[#94A3B8] border-l border-white/10 pl-2">
+            {isUntimed ? 'Freeform' : `Cycle ${pomodoro.currentCycle} of 4`}
+          </span>
+
+          {/* Quick Reset */}
+          {!isUntimed && (
+            <button
+              onClick={resetPomodoro}
+              className="w-5 h-5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              title="Reset timer"
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Right: Ambient Focus Audio widget pill & Local-First badge */}
+      <div className="flex items-center justify-end gap-2.5 w-60">
+        {/* Ambient Focus Audio Widget Pill */}
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#161B22] border border-white/[0.08] text-slate-300 transition-all text-[11.5px]">
+          <button
+            onClick={toggleAudioPlaying}
+            className="flex items-center gap-1.5 cursor-pointer hover:text-white"
+            title={audio.isPlayingAudio ? 'Pause focus audio' : 'Play focus audio'}
+          >
+            <Headphones className="w-3.5 h-3.5 text-[#A78BFA]" />
+            <span className="font-medium text-slate-200 max-w-[110px] truncate text-[11px]">
+              {activeTrack?.title || 'Focus Audio'}
+            </span>
+          </button>
+
+          {/* Mini Equalizer animation or Mute Toggle */}
+          <button
+            onClick={() => useDayframeStore.getState().setVolume(isMuted ? 0.7 : 0)}
+            className="text-slate-400 hover:text-[#A78BFA] transition-colors cursor-pointer ml-0.5"
+            title={isMuted ? 'Unmute' : 'Mute'}
+          >
+            {isMuted ? (
+              <VolumeX className="w-3.5 h-3.5 text-rose-400" />
+            ) : audio.isPlayingAudio ? (
+              <div className="flex items-end gap-0.5 h-2.5 px-0.5">
+                <span className="w-0.5 bg-[#A78BFA] rounded-full bar-1" />
+                <span className="w-0.5 bg-[#A78BFA] rounded-full bar-2" />
+                <span className="w-0.5 bg-[#A78BFA] rounded-full bar-3" />
+              </div>
+            ) : (
+              <Volume2 className="w-3.5 h-3.5 text-[#94A3B8]" />
+            )}
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
