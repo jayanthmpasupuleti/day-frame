@@ -26,7 +26,7 @@
         "hiddenTitle": true,
         "shadow": true,
         "windowEffects": {
-          "effects": ["hudWindow", "underWindow"],
+          "effects": ["hudWindow"],
           "state": "active",
           "radius": 14.0
         }
