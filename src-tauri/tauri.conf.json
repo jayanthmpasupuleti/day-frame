@@ -30,6 +30,21 @@
           "state": "active",
           "radius": 14.0
         }
+      },
+      {
+        "label": "popover",
+        "title": "Dayframe Popover",
+        "url": "index.html?view=popover",
+        "width": 360,
+        "height": 460,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "hiddenTitle": true,
+        "visible": false,
+        "shadow": true
       }
     ],
     "security": {
