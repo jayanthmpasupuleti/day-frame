@@ -74,6 +74,11 @@ fn toggle_popover(app: tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn start_drag(window: tauri::WebviewWindow) -> Result<(), String> {
+    window.start_dragging().map_err(|e| e.to_string())
+}
+
 fn handle_tray_action(app: &tauri::AppHandle, action: &str) {
     match action {
         "toggle_timer" => {
@@ -198,7 +203,8 @@ pub fn run() {
             update_tray_title,
             open_full_dashboard,
             hide_popover,
-            toggle_popover
+            toggle_popover,
+            start_drag
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

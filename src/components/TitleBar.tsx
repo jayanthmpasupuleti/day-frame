@@ -30,14 +30,48 @@ export const TitleBar: React.FC = () => {
     audio.audioTracks.find((t) => t.id === audio.activeTrackId) || audio.audioTracks[0];
   const isMuted = audio.volume === 0;
 
+  const handleMouseDown = async (e: React.MouseEvent) => {
+    // Only drag on primary left mouse button
+    if (e.button !== 0) return;
+
+    // Do not trigger drag if clicking an interactive control
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, textarea, select, a, [role="button"]')) {
+      return;
+    }
+
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      await getCurrentWindow().startDragging();
+    } catch {
+      try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        await invoke('start_drag');
+      } catch {}
+    }
+  };
+
+  const handleDoubleClick = async (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, textarea, select, a, [role="button"]')) {
+      return;
+    }
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      await getCurrentWindow().toggleMaximize();
+    } catch {}
+  };
+
   return (
     <header
       data-tauri-drag-region
-      className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-white/[0.07] bg-[#0D1117]/90 backdrop-blur-xl relative z-30 select-none"
+      onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
+      className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-white/[0.07] bg-[#0D1117]/90 backdrop-blur-xl relative z-30 select-none cursor-default"
     >
       {/* Left: Native macOS Traffic Lights space + Dayframe Brand with Neon Mint Pulse */}
       <div data-tauri-drag-region className="flex items-center gap-2.5 w-60 pl-[70px]">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pointer-events-none">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_8px_#00E599]" />
@@ -126,7 +160,7 @@ export const TitleBar: React.FC = () => {
       </div>
 
       {/* Right: Ambient Focus Audio widget pill & Local-First badge */}
-      <div className="flex items-center justify-end gap-2.5 w-60">
+      <div data-tauri-drag-region className="flex items-center justify-end gap-2.5 w-60">
         {/* Ambient Focus Audio Widget Pill */}
         <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#161B22] border border-white/[0.08] text-slate-300 transition-all text-[11.5px]">
           <button
