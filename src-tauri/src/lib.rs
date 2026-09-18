@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager,
+    Manager,
 };
 
 pub struct TrayMenuHandles {
@@ -77,32 +77,16 @@ fn toggle_popover(app: tauri::AppHandle) -> Result<(), String> {
 fn handle_tray_action(app: &tauri::AppHandle, action: &str) {
     match action {
         "toggle_timer" => {
-            let _ = app.emit("tray-action", "toggle_timer");
             if let Some(main) = app.get_webview_window("main") {
                 let _ = main.eval(
-                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'toggle_timer' })); \
-                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().toggleTimer(); }"
-                );
-            }
-            if let Some(popover) = app.get_webview_window("popover") {
-                let _ = popover.eval(
-                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'toggle_timer' })); \
-                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().toggleTimer(); }"
+                    "if (window.__DAYFRAME_ACTION__) { window.__DAYFRAME_ACTION__('toggle_timer'); }"
                 );
             }
         }
         "skip_break" => {
-            let _ = app.emit("tray-action", "skip_break");
             if let Some(main) = app.get_webview_window("main") {
                 let _ = main.eval(
-                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'skip_break' })); \
-                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().setMode('focus'); }"
-                );
-            }
-            if let Some(popover) = app.get_webview_window("popover") {
-                let _ = popover.eval(
-                    "window.dispatchEvent(new CustomEvent('tray-action', { detail: 'skip_break' })); \
-                     if (window.__DAYFRAME_STORE__) { window.__DAYFRAME_STORE__.getState().setMode('focus'); }"
+                    "if (window.__DAYFRAME_ACTION__) { window.__DAYFRAME_ACTION__('skip_break'); }"
                 );
             }
         }

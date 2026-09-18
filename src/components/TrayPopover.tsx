@@ -15,27 +15,21 @@ import {
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 import { useCrossWindowSync } from '../hooks/useCrossWindowSync';
-import { useTraySync } from '../hooks/useTraySync';
 
 export const TrayPopover: React.FC = () => {
-  // Mount sync hooks
-  useCrossWindowSync(true);
-  useTraySync();
+  // Mount cross-window sync hook and get action dispatcher
+  const { dispatchAction } = useCrossWindowSync(true);
 
-  const {
-    pomodoro,
-    togglePomodoroRunning,
-    resetPomodoro,
-    setPomodoroMode,
-    tasks,
-    promoteToFocus,
-    completeHeroTask,
-    habits,
-    toggleHabit,
-    audio,
-    toggleAudioPlaying,
-    setAudioVolume,
-  } = useDayframeStore();
+  const { pomodoro, tasks, habits, audio } = useDayframeStore();
+
+  const handleToggleTimer = () => dispatchAction('toggleTimer');
+  const handleResetTimer = () => dispatchAction('resetTimer');
+  const handleSetMode = (mode: string) => dispatchAction('setMode', mode);
+  const handlePromoteToFocus = (id: string) => dispatchAction('promoteToFocus', id);
+  const handleCompleteHeroTask = (id: string) => dispatchAction('completeHeroTask', id);
+  const handleToggleHabit = (id: string) => dispatchAction('toggleHabit', id);
+  const handleToggleAudio = () => dispatchAction('toggleAudio');
+  const handleSetVolume = (vol: number) => dispatchAction('setVolume', vol);
 
   const [showPicker, setShowPicker] = useState(false);
 
@@ -173,7 +167,7 @@ export const TrayPopover: React.FC = () => {
             <button
               onClick={() => {
                 const next = pomodoro.mode === 'focus' ? 'shortBreak' : 'focus';
-                setPomodoroMode(next);
+                handleSetMode(next);
               }}
               className="hover:text-white cursor-pointer transition-colors flex items-center gap-1 text-[10px]"
             >
@@ -184,7 +178,7 @@ export const TrayPopover: React.FC = () => {
 
           <div className="flex items-center gap-2 pt-0.5">
             <button
-              onClick={togglePomodoroRunning}
+              onClick={handleToggleTimer}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                 pomodoro.isRunning
                   ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 hover:bg-[#F59E0B]/30'
@@ -205,7 +199,7 @@ export const TrayPopover: React.FC = () => {
             </button>
 
             <button
-              onClick={resetPomodoro}
+              onClick={handleResetTimer}
               className="w-8 h-8 rounded-lg bg-[#161B22] border border-white/[0.07] text-slate-400 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-colors cursor-pointer"
               title="Reset Timer"
             >
@@ -246,7 +240,7 @@ export const TrayPopover: React.FC = () => {
             </div>
 
             <button
-              onClick={() => completeHeroTask(activeFocusTask.id)}
+              onClick={() => handleCompleteHeroTask(activeFocusTask.id)}
               className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/30 hover:bg-[#00E599] hover:text-black font-semibold text-[11px] transition-all cursor-pointer active:scale-95 shrink-0"
               title="Mark Task Completed"
             >
@@ -272,7 +266,7 @@ export const TrayPopover: React.FC = () => {
                   <button
                     key={task.id}
                     onClick={() => {
-                      promoteToFocus(task.id);
+                      handlePromoteToFocus(task.id);
                       setShowPicker(false);
                     }}
                     className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-white/[0.08] text-slate-200 truncate cursor-pointer transition-colors flex items-center justify-between"
@@ -302,7 +296,7 @@ export const TrayPopover: React.FC = () => {
           {habits.map((habit) => (
             <div
               key={habit.id}
-              onClick={() => toggleHabit(habit.id)}
+              onClick={() => handleToggleHabit(habit.id)}
               className="flex items-center justify-between p-1 rounded-md hover:bg-white/[0.04] transition-colors cursor-pointer group"
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -346,7 +340,7 @@ export const TrayPopover: React.FC = () => {
 
         <div className="flex items-center gap-1.5 shrink-0">
           <button
-            onClick={() => setAudioVolume(isMuted ? 0.7 : 0)}
+            onClick={() => handleSetVolume(isMuted ? 0.7 : 0)}
             className="w-6 h-6 rounded flex items-center justify-center hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
             title={isMuted ? 'Unmute' : 'Mute'}
           >
@@ -358,7 +352,7 @@ export const TrayPopover: React.FC = () => {
           </button>
 
           <button
-            onClick={toggleAudioPlaying}
+            onClick={handleToggleAudio}
             className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
               audio.isPlayingAudio
                 ? 'bg-[#A78BFA]/20 text-[#A78BFA] border border-[#A78BFA]/40'

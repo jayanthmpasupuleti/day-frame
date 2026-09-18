@@ -74,9 +74,17 @@ export const useTraySync = (): void => {
     }
   }, [pomodoro.timeLeft, pomodoro.isRunning, pomodoro.mode, pomodoro.settings]);
 
-  // 2. Listen to tray menu actions via both Tauri event and DOM CustomEvent
+  // 2. Register global action handler for native tray menu items with debounce guard
   useEffect(() => {
+    let lastTimestamp = 0;
+
     const handleAction = (action: string) => {
+      const now = Date.now();
+      if (now - lastTimestamp < 300) {
+        return;
+      }
+      lastTimestamp = now;
+
       if (action === 'toggle_timer') {
         useDayframeStore.getState().toggleTimer();
       } else if (action === 'skip_break') {
@@ -84,39 +92,11 @@ export const useTraySync = (): void => {
       }
     };
 
-    // DOM event listener (triggered via WebviewWindow.eval)
-    const domListener = (e: Event) => {
-      const customEvent = e as CustomEvent<string>;
-      if (customEvent.detail) {
-        handleAction(customEvent.detail);
-      }
-    };
-    window.addEventListener('tray-action', domListener);
-
-    // Tauri IPC event listener
-    let unlisten: (() => void) | null = null;
-    try {
-      import('@tauri-apps/api/event')
-        .then(({ listen }) => {
-          listen<string>('tray-action', (event) => {
-            if (event.payload) {
-              handleAction(event.payload);
-            }
-          })
-            .then((unlistenFn) => {
-              unlisten = unlistenFn;
-            })
-            .catch(() => {});
-        })
-        .catch(() => {});
-    } catch {
-      // Ignored outside Tauri
-    }
+    (window as any).__DAYFRAME_ACTION__ = handleAction;
 
     return () => {
-      window.removeEventListener('tray-action', domListener);
-      if (unlisten) {
-        unlisten();
+      if ((window as any).__DAYFRAME_ACTION__ === handleAction) {
+        delete (window as any).__DAYFRAME_ACTION__;
       }
     };
   }, []);
