@@ -8,7 +8,7 @@ import { useDayframeStore } from '../store/useDayframeStore';
  * Dynamically updates:
  * 1. Title bar countdown (e.g. 🍅 24:18, ☕ 04:52, Dayframe)
  * 2. Menu action label: "Start Focus" / "Pause Focus" / "Resume Break" / "Pause Break"
- * 3. Skip break item: Enabled ONLY during active breaks, labeled "Skip Break & Resume Focus"
+ * 3. Skip break item: Enabled ONLY during active breaks, labeled "Skip Break"
  */
 export const useTraySync = (): void => {
   const pomodoro = useDayframeStore((state) => state.pomodoro);
@@ -49,7 +49,7 @@ export const useTraySync = (): void => {
       timer_label = pomodoro.isRunning ? 'Pause Focus' : 'Start Focus';
     }
 
-    const break_label = isBreak ? 'Skip Break & Resume Focus' : 'Skip Break';
+    const break_label = 'Skip Break';
     const break_enabled = isBreak;
 
     const payload = {
