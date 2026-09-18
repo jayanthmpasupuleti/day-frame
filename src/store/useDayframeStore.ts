@@ -219,7 +219,7 @@ const DEFAULT_TASKS: AgileTask[] = [
 ];
 
 const DEFAULT_AUDIO_TRACKS: AudioTrack[] = [
-  { id: 'lofi', title: 'Lofi Chill Radio', youtubeId: 'jfKfPfyJRdk' },
+  { id: 'lofi', title: 'Lofi Chill Radio', youtubeId: '5qap5aO4i9A' },
   { id: 'synthwave', title: 'Synthwave Focus', youtubeId: '4xDzrJKXOOY' },
   { id: 'ambient', title: 'Deep Ambient Noise', youtubeId: 'WPni755-Krg' },
 ];
@@ -715,6 +715,15 @@ export const useDayframeStore = create<DayframeStore>()(
         },
         sync: state.sync,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.audio?.audioTracks) {
+          state.audio.audioTracks = state.audio.audioTracks.map((track) =>
+            track.youtubeId === 'jfKfPfyJRdk'
+              ? { ...track, youtubeId: '5qap5aO4i9A' }
+              : track
+          );
+        }
+      },
     }
   )
 );

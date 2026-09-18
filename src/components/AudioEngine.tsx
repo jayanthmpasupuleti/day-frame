@@ -12,6 +12,7 @@ declare global {
           height: string | number;
           width: string | number;
           videoId: string;
+          host?: string;
           playerVars?: Record<string, any>;
           events?: {
             onReady?: (event: any) => void;
@@ -38,7 +39,7 @@ export const AudioEngine: React.FC = () => {
 
   const activeTrack =
     audioTracks.find((t) => t.id === activeTrackId) || audioTracks[0];
-  const activeYoutubeId = activeTrack?.youtubeId || 'jfKfPfyJRdk';
+  const activeYoutubeId = activeTrack?.youtubeId || '5qap5aO4i9A';
 
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
@@ -76,10 +77,16 @@ export const AudioEngine: React.FC = () => {
       if (!containerRef.current || playerRef.current || !window.YT?.Player) return;
 
       try {
+        const origin =
+          typeof window !== 'undefined' && window.location.origin.startsWith('http')
+            ? window.location.origin
+            : 'https://www.youtube.com';
+
         playerRef.current = new window.YT.Player(containerRef.current, {
           height: '1',
           width: '1',
           videoId: activeYoutubeId,
+          host: 'https://www.youtube-nocookie.com',
           playerVars: {
             autoplay: 0,
             controls: 0,
@@ -89,9 +96,9 @@ export const AudioEngine: React.FC = () => {
             modestbranding: 1,
             showinfo: 0,
             iv_load_policy: 3,
-            loop: 1,
-            playlist: activeYoutubeId, // Required by YouTube for seamless audio looping
             playsinline: 1,
+            origin,
+            enablejsapi: 1,
           },
           events: {
             onReady: (event: any) => {
@@ -199,6 +206,13 @@ export const AudioEngine: React.FC = () => {
 
   // Handle Playback / Embedding Errors
   const handlePlaybackError = (code: number) => {
+    console.warn('YouTube Stream playback error:', code);
+
+    // If audio is not currently playing, do not show an error toast to the user on load
+    if (!isPlayingAudio) {
+      return;
+    }
+
     let detail = 'Stream unavailable';
     if (code === 101 || code === 150) {
       detail = 'Embedding disallowed by video owner';
@@ -206,11 +220,12 @@ export const AudioEngine: React.FC = () => {
       detail = 'Video not found or private';
     }
 
-    setErrorMessage(`${detail}. Falling back to default Lofi Chill stream.`);
+    const fallbackTrackId = activeTrackId === 'lofi' ? 'synthwave' : 'lofi';
+    setErrorMessage(`${detail}. Switching to alternate focus stream.`);
 
-    // Automatically fall back to default Lofi stream
+    // Automatically fall back to an alternate stream to avoid loops
     setTimeout(() => {
-      setActiveTrack('lofi');
+      setActiveTrack(fallbackTrackId);
     }, 400);
 
     // Auto-dismiss toast

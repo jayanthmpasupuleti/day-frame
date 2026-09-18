@@ -16,7 +16,7 @@ import { useDayframeStore } from '../store/useDayframeStore';
 import type { PomodoroMode, AudioTrack } from '../types';
 
 const PRESET_STREAMS: AudioTrack[] = [
-  { id: 'lofi', title: 'Lofi Chill Radio', youtubeId: 'jfKfPfyJRdk' },
+  { id: 'lofi', title: 'Lofi Chill Radio', youtubeId: '5qap5aO4i9A' },
   { id: 'synthwave', title: 'Synthwave Focus', youtubeId: '4xDzrJKXOOY' },
   { id: 'ambient', title: 'Deep Ambient Noise', youtubeId: 'WPni755-Krg' },
 ];

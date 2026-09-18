@@ -10,7 +10,9 @@ import {
   Clock,
   Sparkles,
   GripVertical,
+  Lock,
   Timer,
+  AlertTriangle,
   Coffee,
   Trash2,
   Undo2,
@@ -60,6 +62,7 @@ export const AgileBoard: React.FC = () => {
   const [isDragOverFocus, setIsDragOverFocus] = useState(false);
   const [isDragOverBacklog, setIsDragOverBacklog] = useState(false);
   const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
+  const [blockedAlert, setBlockedAlert] = useState<string | null>(null);
 
   // Duration editor popover state for backlog cards
   const [editingDurationTaskId, setEditingDurationTaskId] = useState<string | null>(null);
@@ -91,6 +94,11 @@ export const AgileBoard: React.FC = () => {
     : estimatedPomos > 0
     ? Math.min(1, (completedPomos + (pomodoro.isRunning ? currentCycleProgress : 0)) / estimatedPomos)
     : 0;
+
+  const triggerBlockedAlert = (msg: string) => {
+    setBlockedAlert(msg);
+    setTimeout(() => setBlockedAlert(null), 3500);
+  };
 
   const handleCreateTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,9 +134,15 @@ export const AgileBoard: React.FC = () => {
   // Drop onto IN FOCUS Column
   const handleDragOverFocus = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (!isDragOverFocus) {
-      setIsDragOverFocus(true);
+    if (dragSource === 'backlog') {
+      if (focusTask !== null) {
+        e.dataTransfer.dropEffect = 'none';
+      } else {
+        e.dataTransfer.dropEffect = 'move';
+      }
+      if (!isDragOverFocus) {
+        setIsDragOverFocus(true);
+      }
     }
   };
 
@@ -142,7 +156,19 @@ export const AgileBoard: React.FC = () => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
 
-    if (taskId) {
+    if (focusTask !== null) {
+      triggerBlockedAlert(
+        pomodoro.isRunning
+          ? 'Active Session in Progress: Complete or return the active task to Backlog before starting a new one!'
+          : 'Slot Occupied: Complete or return the active task to Backlog before starting a new one!'
+      );
+      setIsDragOverFocus(false);
+      setDraggedTaskId(null);
+      setDragSource(null);
+      return;
+    }
+
+    if (taskId && dragSource === 'backlog') {
       setTaskStatus(taskId, 'in_focus');
       setJustDroppedId(taskId);
       setTimeout(() => setJustDroppedId(null), 700);
@@ -179,6 +205,14 @@ export const AgileBoard: React.FC = () => {
   };
 
   const handlePromoteClick = (taskId: string) => {
+    if (focusTask !== null) {
+      triggerBlockedAlert(
+        pomodoro.isRunning
+          ? 'Active Session in Progress: Complete or return the active task to Backlog before starting a new one!'
+          : 'Slot Occupied: Complete or return the active task to Backlog before starting a new one!'
+      );
+      return;
+    }
     setTaskStatus(taskId, 'in_focus');
     setJustDroppedId(taskId);
     setTimeout(() => setJustDroppedId(null), 700);
@@ -244,7 +278,13 @@ export const AgileBoard: React.FC = () => {
                     ? 'opacity-35 scale-95 border-dashed border-[#00E599]/80 rotate-1 shadow-mint-glow bg-[#161B22]/60'
                     : 'border-white/[0.05] hover:border-white/15 hover:bg-[#1A202C] hover:shadow-card'
                 }`}
-                title={focusTask ? 'Drag into In Focus to swap active task' : 'Drag into In Focus to start work'}
+                title={
+                  focusTask
+                    ? pomodoro.isRunning
+                      ? 'Slot locked: Active timer running in In Focus'
+                      : 'Slot occupied: Complete or return active task to Backlog first'
+                    : 'Drag into In Focus to start work'
+                }
               >
                 {/* Title & Grip / Hover Actions */}
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -275,8 +315,19 @@ export const AgileBoard: React.FC = () => {
                         e.stopPropagation();
                         handlePromoteClick(task.id);
                       }}
-                      className="px-2 py-0.5 rounded-full text-[10.5px] font-medium transition-all cursor-pointer flex items-center gap-1 bg-white/[0.06] hover:bg-[#00E599] text-slate-300 hover:text-[#0A0D14] border border-white/[0.08] hover:border-[#00E599]"
-                      title={focusTask !== null ? 'Swap this task into Focus' : 'Focus this task'}
+                      disabled={focusTask !== null}
+                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-medium transition-all flex items-center gap-1 ${
+                        focusTask !== null
+                          ? 'opacity-30 bg-white/[0.04] text-slate-500 cursor-not-allowed'
+                          : 'cursor-pointer bg-white/[0.06] hover:bg-[#00E599] text-slate-300 hover:text-[#0A0D14] border border-white/[0.08] hover:border-[#00E599]'
+                      }`}
+                      title={
+                        focusTask !== null
+                          ? pomodoro.isRunning
+                            ? 'Focus timer running — complete current task first'
+                            : 'Focus slot occupied — complete current task first'
+                          : 'Focus this task'
+                      }
                     >
                       <span>Focus</span>
                       <ArrowRight className="w-2.5 h-2.5" />
@@ -477,7 +528,9 @@ export const AgileBoard: React.FC = () => {
         onDragLeave={handleDragLeaveFocus}
         onDrop={handleDropOnFocus}
         className={`col-span-5 flex flex-col bg-[#0D1117] rounded-xl border p-4 shadow-[0_0_24px_rgba(0,229,153,0.08)] relative overflow-hidden min-h-0 transition-all duration-200 ${
-          isDragOverFocus
+          isDragOverFocus && focusTask !== null
+            ? 'border-amber-500/60 ring-2 ring-amber-500/30 bg-amber-500/[0.04]'
+            : isDragOverFocus && focusTask === null
             ? 'border-[#00E599] ring-2 ring-[#00E599]/40 bg-[#00E599]/[0.04] shadow-[0_0_35px_rgba(0,229,153,0.22)] scale-[1.008]'
             : focusTask !== null
             ? 'border-[#00E599]/40'
@@ -502,7 +555,7 @@ export const AgileBoard: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono text-[#94A3B8]">
-              {focusTask ? 'Active Task' : 'Drop Target'}
+              {focusTask ? (pomodoro.isRunning ? 'Timer Active' : 'Slot Occupied') : 'Drop Target'}
             </span>
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border tabular-nums ${
@@ -516,13 +569,31 @@ export const AgileBoard: React.FC = () => {
           </div>
         </div>
 
-        {/* Drop Guide when dragging over */}
-        {isDragOverFocus && (
-          <div className="mb-3 py-2.5 px-3 rounded-xl border-2 border-dashed border-[#00E599] bg-[#00E599]/15 text-[#00E599] font-bold text-[11.5px] flex items-center justify-center gap-2 shadow-mint-glow animate-pulse relative z-20">
-            <Sparkles className="w-3.5 h-3.5 text-[#00E599]" />
+        {/* Prohibited Drop Alert or Active Guide */}
+        {isDragOverFocus && focusTask !== null && (
+          <div className="mb-3 py-2.5 px-3 rounded-xl border border-amber-500/50 bg-amber-500/15 text-amber-300 font-bold text-[11px] flex items-center justify-center gap-2 animate-pulse relative z-20">
+            <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
             <span>
-              {focusTask ? 'Drop to swap into Focus (current task returns to Backlog)' : 'Drop here to start focusing!'}
+              {pomodoro.isRunning
+                ? 'Timer Running — Complete or return active task to Backlog first'
+                : 'Slot Occupied — Complete or return active task to Backlog first'}
             </span>
+          </div>
+        )}
+
+        {/* Drop Guide when slot is empty */}
+        {isDragOverFocus && focusTask === null && (
+          <div className="mb-3 py-3 px-4 rounded-xl border-2 border-dashed border-[#00E599] bg-[#00E599]/15 text-[#00E599] font-bold text-[12px] flex items-center justify-center gap-2 shadow-mint-glow animate-pulse relative z-20">
+            <Sparkles className="w-4 h-4 text-[#00E599]" />
+            <span>Drop here to start focusing!</span>
+          </div>
+        )}
+
+        {/* Blocked Alert Banner */}
+        {blockedAlert && (
+          <div className="mb-3 py-2 px-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11.5px] flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-1 relative z-20">
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <span>{blockedAlert}</span>
           </div>
         )}
 
