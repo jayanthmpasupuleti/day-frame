@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Plus,
   Check,
+  CheckCircle2,
   ArrowRight,
   ArrowLeft,
   Play,
@@ -19,6 +20,8 @@ import {
   FileText,
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
+import { ConfettiCanvas, ConfettiRef } from './ConfettiCanvas';
+import { CompletionCelebration } from './CompletionCelebration';
 
 const DURATION_OPTIONS = [0, 15, 25, 30, 45, 60, 90];
 
@@ -70,6 +73,24 @@ export const AgileBoard: React.FC = () => {
   const backlogTasks = tasks.filter((t) => t.status === 'backlog');
   const focusTask = tasks.find((t) => t.status === 'in_focus') || null;
   const doneTasks = tasks.filter((t) => t.status === 'done');
+
+  // Condition: All tasks are completed, both backlog and in-focus are empty
+  const isAllDone =
+    tasks.length > 0 && backlogTasks.length === 0 && focusTask === null && doneTasks.length > 0;
+  const totalPomosDone = doneTasks.reduce((sum, t) => sum + (t.pomosDone || 1), 0);
+
+  const confettiRef = useRef<ConfettiRef | null>(null);
+  const wasAllDoneRef = useRef(false);
+  const [showCelebrationBanner, setShowCelebrationBanner] = useState(true);
+
+  // Automatically trigger confetti when transitioning into all-done state
+  useEffect(() => {
+    if (isAllDone && !wasAllDoneRef.current) {
+      confettiRef.current?.fire();
+      setShowCelebrationBanner(true);
+    }
+    wasAllDoneRef.current = isAllDone;
+  }, [isAllDone]);
 
   // Format pomodoro time
   const minutes = Math.floor(pomodoro.timeLeft / 60);
@@ -219,11 +240,52 @@ export const AgileBoard: React.FC = () => {
   };
 
   return (
-    <main className="flex-1 p-5 grid grid-cols-12 gap-5 min-h-0 overflow-hidden select-none bg-[#0A0D14]">
-      {/* ========================================================================= */}
-      {/* COLUMN 1: TODAY'S BACKLOG (Col span 4)                                   */}
-      {/* ========================================================================= */}
-      <section
+    <>
+      <ConfettiCanvas ref={confettiRef} />
+      <main className="flex-1 p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-[#0A0D14] relative">
+        {/* Top Celebration Banner on Screen */}
+        {isAllDone && showCelebrationBanner && (
+          <div className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00E599]/15 via-[#161B22] to-[#A78BFA]/15 border border-[#00E599]/30 shadow-mint-glow flex items-center justify-between animate-banner-slide-down shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-lg bg-[#00E599]/20 border border-[#00E599]/40 flex items-center justify-center text-sm shadow-sm">
+                🎉
+              </div>
+              <div>
+                <span className="text-xs font-bold text-white tracking-wide">
+                  Yayy!! You are done with your tasks. Let's go!!
+                </span>
+                <span className="text-[11px] text-slate-400 ml-2 hidden sm:inline">
+                  Backlog and in-focus are completely cleared today.
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => confettiRef.current?.fire()}
+                className="px-2.5 py-1 rounded-lg bg-[#00E599]/20 hover:bg-[#00E599]/35 text-[#00E599] text-[10.5px] font-mono font-bold border border-[#00E599]/40 transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
+                title="Blast confetti again!"
+              >
+                <span>🎊 Confetti</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCelebrationBanner(false)}
+                className="text-slate-400 hover:text-white p-1 text-[11px] cursor-pointer rounded-md hover:bg-white/10 transition-colors"
+                title="Dismiss banner"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 3 Columns Grid */}
+        <div className="flex-1 grid grid-cols-12 gap-5 min-h-0 overflow-hidden">
+          {/* ========================================================================= */}
+          {/* COLUMN 1: TODAY'S BACKLOG (Col span 4)                                   */}
+          {/* ========================================================================= */}
+          <section
         onDragOver={handleDragOverBacklog}
         onDragLeave={handleDragLeaveBacklog}
         onDrop={handleDropOnBacklog}
@@ -261,6 +323,18 @@ export const AgileBoard: React.FC = () => {
 
         {/* Task Cards List */}
         <div className="flex-1 space-y-2.5 overflow-y-auto pr-1">
+          {isAllDone && (
+            <div className="py-7 px-4 rounded-xl bg-[#161B22]/40 border border-dashed border-[#00E599]/25 flex flex-col items-center justify-center text-center animate-card-enter my-3">
+              <div className="w-10 h-10 rounded-full bg-[#00E599]/10 border border-[#00E599]/30 flex items-center justify-center text-[#00E599] mb-2 shadow-mint-glow">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div className="text-xs font-bold text-slate-200">Backlog 100% Cleared!</div>
+              <div className="text-[11px] text-slate-400 mt-1 max-w-[190px] leading-relaxed">
+                Zero pending tasks remaining. Everything scheduled for today is done!
+              </div>
+            </div>
+          )}
+
           {backlogTasks.map((task) => {
             const isBeingDragged = draggedTaskId === task.id;
             const taskDurationMin = task.durationMinutes ?? 25;
@@ -777,6 +851,13 @@ export const AgileBoard: React.FC = () => {
               </button>
             </div>
           </div>
+        ) : isAllDone ? (
+          <CompletionCelebration
+            doneCount={doneTasks.length}
+            totalPomos={totalPomosDone}
+            onCelebrateAgain={() => confettiRef.current?.fire()}
+            onAddNewTask={() => setIsAddingTask(true)}
+          />
         ) : (
           /* Empty State: Dashed Inset Container */
           <div className="flex-1 flex flex-col items-center justify-center border-dashed border-white/10 rounded-xl p-8 text-center text-slate-400 text-sm bg-[#161B22]/30">
@@ -849,7 +930,9 @@ export const AgileBoard: React.FC = () => {
           })}
         </div>
       </section>
-    </main>
+    </div>
+  </main>
+</>
   );
 };
 

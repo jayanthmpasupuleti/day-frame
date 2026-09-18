@@ -166,3 +166,30 @@
 .animate-spin-slow {
   animation: spin-slow 8s linear infinite;
 }
+
+@keyframes celebration-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(1deg);
+  }
+}
+.animate-celebration-float {
+  animation: celebration-float 2.8s ease-in-out infinite;
+}
+
+@keyframes banner-slide-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-banner-slide-down {
+  animation: banner-slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
