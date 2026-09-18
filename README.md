@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Dayframe Dashboard](docs/images/dayframe-ui.png)
+![Dayframe Dashboard](docs/images/dayframe-ui-mockup.png)
 
 **A solo, local-first personal productivity macOS desktop application designed for deep focus, agile day-sprinting, and habit mastery.**
 
