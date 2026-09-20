@@ -70,24 +70,24 @@ export const TitleBar: React.FC = () => {
       className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-white/[0.07] bg-[#0D1117]/90 backdrop-blur-xl relative z-30 select-none cursor-default"
     >
       {/* Left: Native macOS Traffic Lights space + Dayframe Brand with Neon Mint Pulse */}
-      <div data-tauri-drag-region className="flex items-center gap-2.5 w-60 pl-[70px]">
-        <div className="flex items-center gap-2 pointer-events-none">
-          <span className="relative flex h-2 w-2">
+      <div data-tauri-drag-region className="flex items-center gap-2.5 flex-1 max-w-[240px] pl-[70px] min-w-0">
+        <div className="flex items-center gap-2 pointer-events-none min-w-0">
+          <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_8px_#00E599]" />
           </span>
-          <span className="font-semibold text-[13px] tracking-tight text-white">
+          <span className="font-semibold text-[13px] tracking-tight text-white truncate">
             Dayframe
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/[0.05] border border-white/[0.07] text-[#94A3B8]">
+          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/[0.05] border border-white/[0.07] text-[#94A3B8] hidden sm:inline shrink-0">
             v2.0
           </span>
         </div>
       </div>
 
       {/* Center: Live Pomodoro Pill */}
-      <div data-tauri-drag-region className="flex items-center justify-center">
-        <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#161B22] border border-white/[0.08] shadow-card backdrop-blur-md">
+      <div data-tauri-drag-region className="flex items-center justify-center shrink-0 min-w-0">
+        <div className="inline-flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#161B22] border border-white/[0.08] shadow-card backdrop-blur-md">
           {/* Mode Pill Tag */}
           <button
             onClick={() => {
@@ -120,7 +120,7 @@ export const TitleBar: React.FC = () => {
           {!isUntimed && (
             <button
               onClick={togglePomodoroRunning}
-              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight transition-all cursor-pointer active:scale-95 ${
+              className={`flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight transition-all cursor-pointer active:scale-95 ${
                 pomodoro.isRunning
                   ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 hover:bg-[#F59E0B]/30'
                   : 'bg-[#00E599] text-black hover:bg-[#4DFFB2] shadow-mint-btn'
@@ -142,7 +142,7 @@ export const TitleBar: React.FC = () => {
           )}
 
           {/* Cycle Indicator */}
-          <span className="text-[11px] font-mono text-[#94A3B8] border-l border-white/10 pl-2">
+          <span className="text-[11px] font-mono text-[#94A3B8] border-l border-white/10 pl-2 hidden md:inline">
             {isUntimed ? 'Freeform' : `Cycle ${pomodoro.currentCycle} of 4`}
           </span>
 
@@ -150,7 +150,7 @@ export const TitleBar: React.FC = () => {
           {!isUntimed && (
             <button
               onClick={resetPomodoro}
-              className="w-5 h-5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="w-5 h-5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
               title="Reset timer"
             >
               <RotateCcw className="w-3 h-3" />
@@ -160,16 +160,16 @@ export const TitleBar: React.FC = () => {
       </div>
 
       {/* Right: Ambient Focus Audio widget pill & Local-First badge */}
-      <div data-tauri-drag-region className="flex items-center justify-end gap-2.5 w-60">
+      <div data-tauri-drag-region className="flex items-center justify-end gap-2 flex-1 max-w-[240px] shrink-0">
         {/* Ambient Focus Audio Widget Pill */}
-        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#161B22] border border-white/[0.08] text-slate-300 transition-all text-[11.5px]">
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full bg-[#161B22] border border-white/[0.08] text-slate-300 transition-all text-[11.5px] min-w-0">
           <button
             onClick={toggleAudioPlaying}
-            className="flex items-center gap-1.5 cursor-pointer hover:text-white"
+            className="flex items-center gap-1.5 cursor-pointer hover:text-white min-w-0"
             title={audio.isPlayingAudio ? 'Pause focus audio' : 'Play focus audio'}
           >
-            <Headphones className="w-3.5 h-3.5 text-[#A78BFA]" />
-            <span className="font-medium text-slate-200 max-w-[110px] truncate text-[11px]">
+            <Headphones className="w-3.5 h-3.5 text-[#A78BFA] shrink-0" />
+            <span className="font-medium text-slate-200 max-w-[75px] sm:max-w-[110px] truncate text-[11px]">
               {activeTrack?.title || 'Focus Audio'}
             </span>
           </button>

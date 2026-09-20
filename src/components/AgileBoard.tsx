@@ -270,24 +270,24 @@ export const AgileBoard: React.FC = () => {
   return (
     <>
       <ConfettiCanvas ref={confettiRef} />
-      <main className="flex-1 p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-[#0A0D14] relative">
+      <main className="flex-1 p-3.5 sm:p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-[#0A0D14] relative">
         {/* Top Celebration Banner on Screen */}
         {isAllDone && showCelebrationBanner && (
-          <div className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00E599]/15 via-[#161B22] to-[#A78BFA]/15 border border-[#00E599]/30 shadow-mint-glow flex items-center justify-between animate-banner-slide-down shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-lg bg-[#00E599]/20 border border-[#00E599]/40 flex items-center justify-center text-sm shadow-sm">
+          <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#00E599]/15 via-[#161B22] to-[#A78BFA]/15 border border-[#00E599]/30 shadow-mint-glow flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 animate-banner-slide-down shrink-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-[#00E599]/20 border border-[#00E599]/40 flex items-center justify-center text-sm shadow-sm shrink-0">
                 🎉
               </div>
-              <div>
+              <div className="min-w-0">
                 <span className="text-xs font-bold text-white tracking-wide">
                   Yayy!! You are done with your tasks. Let's go!!
                 </span>
-                <span className="text-[11px] text-slate-400 ml-2 hidden sm:inline">
+                <span className="text-[11px] text-slate-400 ml-2 hidden md:inline">
                   Backlog and in-focus are completely cleared today.
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
               <button
                 type="button"
                 onClick={() => confettiRef.current?.fire()}
@@ -309,7 +309,7 @@ export const AgileBoard: React.FC = () => {
         )}
 
         {/* 3 Columns Grid */}
-        <div className="flex-1 grid grid-cols-12 gap-5 min-h-0 overflow-hidden">
+        <div className="flex-1 grid grid-cols-12 gap-3 sm:gap-4 md:gap-5 min-h-0 overflow-hidden">
           {/* ========================================================================= */}
           {/* COLUMN 1: TODAY'S BACKLOG (Col span 4)                                   */}
           {/* ========================================================================= */}
@@ -317,7 +317,7 @@ export const AgileBoard: React.FC = () => {
         onDragOver={handleDragOverBacklog}
         onDragLeave={handleDragLeaveBacklog}
         onDrop={handleDropOnBacklog}
-        className={`col-span-4 flex flex-col bg-[#0D1117] rounded-xl border p-4 shadow-card min-h-0 transition-all duration-200 ${
+        className={`col-span-4 flex flex-col bg-[#0D1117] rounded-xl border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 ${
           isDragOverBacklog
             ? 'border-[#A78BFA] ring-2 ring-[#A78BFA]/30 bg-[#A78BFA]/[0.03] scale-[1.006]'
             : 'border-white/[0.07]'
@@ -406,7 +406,7 @@ export const AgileBoard: React.FC = () => {
                     <div className="text-slate-600 group-hover:text-[#00E599] transition-colors mt-0.5 shrink-0">
                       <GripVertical className="w-3.5 h-3.5 stroke-[2]" />
                     </div>
-                    <span className="text-[13px] font-medium text-slate-200 leading-snug group-hover:text-white flex-1">
+                    <span className="text-[13px] font-medium text-slate-200 leading-snug group-hover:text-white flex-1 break-words min-w-0">
                       {task.title}
                     </span>
                   </div>
@@ -450,8 +450,8 @@ export const AgileBoard: React.FC = () => {
                 </div>
 
                 {/* Meta Row: Tag Capsule, Duration Pill, Pomos Badge */}
-                <div className="flex items-center justify-between text-[11px] pl-5">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] pl-5">
+                  <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                     {/* Category Tag Capsule */}
                     <span
                       className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${getTagBadgeStyle(
@@ -550,30 +550,31 @@ export const AgileBoard: React.FC = () => {
                 autoFocus
               />
 
-              <div className="flex items-center justify-between text-[11px] pt-1">
-                <select
-                  value={taskTag}
-                  onChange={(e) => setTaskTag(e.target.value)}
-                  className="bg-[#0D1117] text-slate-300 px-2 py-1 rounded-full border border-white/10 text-[10.5px] font-mono"
-                >
-                  <option value="#dev">#dev</option>
-                  <option value="#writing">#writing</option>
-                  <option value="#design">#design</option>
-                  <option value="#personal">#personal</option>
-                  <option value="#routine">#routine</option>
-                </select>
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                {/* Options Group: Tag, Duration Pill, Pomos Counter */}
+                <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                  <select
+                    value={taskTag}
+                    onChange={(e) => setTaskTag(e.target.value)}
+                    className="bg-[#0D1117] text-slate-300 px-2 py-1 rounded-full border border-white/10 text-[10.5px] font-mono cursor-pointer shrink-0"
+                  >
+                    <option value="#dev">#dev</option>
+                    <option value="#writing">#writing</option>
+                    <option value="#design">#design</option>
+                    <option value="#personal">#personal</option>
+                    <option value="#routine">#routine</option>
+                  </select>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 bg-[#0D1117] px-2 py-0.5 rounded-full border border-white/10">
+                  <div className="flex items-center gap-1 bg-[#0D1117] px-2 py-0.5 rounded-full border border-white/10 shrink-0">
                     {taskDuration === 0 ? (
-                      <Coffee className="w-3 h-3 text-[#A78BFA]" />
+                      <Coffee className="w-3 h-3 text-[#A78BFA] shrink-0" />
                     ) : (
-                      <Timer className="w-3 h-3 text-[#00E599]" />
+                      <Timer className="w-3 h-3 text-[#00E599] shrink-0" />
                     )}
                     <select
                       value={taskDuration}
                       onChange={(e) => setTaskDuration(parseInt(e.target.value) || 0)}
-                      className="bg-transparent text-white font-mono text-[10.5px] focus:outline-none"
+                      className="bg-transparent text-white font-mono text-[10.5px] focus:outline-none cursor-pointer"
                     >
                       <option value={0} className="bg-[#0D1117]">
                         0m (Untimed)
@@ -587,8 +588,8 @@ export const AgileBoard: React.FC = () => {
                   </div>
 
                   {taskDuration > 0 && (
-                    <div className="flex items-center gap-1 bg-[#0D1117] px-2 py-0.5 rounded-full border border-white/10">
-                      <span>🍅</span>
+                    <div className="flex items-center gap-1 bg-[#0D1117] px-2 py-0.5 rounded-full border border-white/10 shrink-0">
+                      <span className="text-[10px]">🍅</span>
                       <input
                         type="number"
                         min="1"
@@ -600,17 +601,21 @@ export const AgileBoard: React.FC = () => {
                       />
                     </div>
                   )}
+                </div>
 
+                {/* Actions Group: Add & Cancel */}
+                <div className="flex items-center gap-1.5 ml-auto shrink-0">
                   <button
                     type="submit"
-                    className="px-3 py-1 bg-[#00E599] hover:bg-[#4DFFB2] text-black rounded-full text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer"
+                    className="px-3.5 py-1 bg-[#00E599] hover:bg-[#4DFFB2] active:scale-95 text-black rounded-full text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer"
                   >
                     Add
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsAddingTask(false)}
-                    className="text-slate-400 hover:text-white px-1 text-[11px] cursor-pointer"
+                    className="w-6 h-6 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center text-[12px] transition-colors cursor-pointer"
+                    title="Cancel"
                   >
                     ✕
                   </button>
@@ -641,7 +646,7 @@ export const AgileBoard: React.FC = () => {
         onDragOver={handleDragOverFocus}
         onDragLeave={handleDragLeaveFocus}
         onDrop={handleDropOnFocus}
-        className={`col-span-5 flex flex-col bg-[#0D1117] rounded-xl border p-4 shadow-[0_0_24px_rgba(0,229,153,0.08)] relative overflow-hidden min-h-0 transition-all duration-200 ${
+        className={`col-span-5 flex flex-col bg-[#0D1117] rounded-xl border p-3 sm:p-4 shadow-[0_0_24px_rgba(0,229,153,0.08)] relative overflow-hidden min-h-0 transition-all duration-200 ${
           isDragOverFocus && focusTask !== null
             ? 'border-amber-500/60 ring-2 ring-amber-500/30 bg-amber-500/[0.04]'
             : isDragOverFocus && focusTask === null
@@ -759,7 +764,7 @@ export const AgileBoard: React.FC = () => {
               </div>
 
               {/* Large semibold title (headline-md) */}
-              <h3 className="text-[18px] md:text-[20px] font-semibold text-white tracking-tight leading-snug mb-3">
+              <h3 className="text-[18px] md:text-[20px] font-semibold text-white tracking-tight leading-snug mb-3 break-words">
                 {focusTask.title}
               </h3>
 
@@ -797,7 +802,7 @@ export const AgileBoard: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-[#0D1117] border border-white/[0.08] flex items-center justify-between mb-3">
+                <div className="p-3.5 rounded-xl bg-[#0D1117] border border-white/[0.08] flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-3">
                     <div className="relative flex items-center justify-center">
                       <span
@@ -871,10 +876,10 @@ export const AgileBoard: React.FC = () => {
             </div>
 
             {/* Bottom Actions: Bold Neon Emerald "Complete Task" & Ghost "Return to Backlog" */}
-            <div className="grid grid-cols-2 gap-2.5 mt-4 pt-3.5 border-t border-white/[0.08]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-white/[0.08]">
               <button
                 onClick={() => setTaskStatus(focusTask.id, 'done')}
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-[#00E599] hover:bg-[#4DFFB2] active:scale-[0.98] text-[#0A0D14] font-semibold text-[12px] shadow-mint-btn transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#00E599] hover:bg-[#4DFFB2] active:scale-[0.98] text-[#0A0D14] font-semibold text-[11.5px] sm:text-[12px] shadow-mint-btn transition-all cursor-pointer"
                 title="Complete task and reset timer"
               >
                 <Check className="w-4 h-4 stroke-[3]" />
@@ -883,7 +888,7 @@ export const AgileBoard: React.FC = () => {
 
               <button
                 onClick={() => setTaskStatus(focusTask.id, 'backlog')}
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full bg-[#161B22] hover:bg-white/[0.08] active:scale-[0.98] border border-white/[0.08] text-slate-300 font-medium text-[12px] transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#161B22] hover:bg-white/[0.08] active:scale-[0.98] border border-white/[0.08] text-slate-300 font-medium text-[11.5px] sm:text-[12px] transition-all cursor-pointer"
                 title="Return task to Backlog"
               >
                 <ArrowLeft className="w-3.5 h-3.5 stroke-[2]" />
@@ -900,7 +905,7 @@ export const AgileBoard: React.FC = () => {
           />
         ) : (
           /* Empty State: Dashed Inset Container */
-          <div className="flex-1 flex flex-col items-center justify-center border-dashed border-white/10 rounded-xl p-8 text-center text-slate-400 text-sm bg-[#161B22]/30">
+          <div className="flex-1 flex flex-col items-center justify-center border-dashed border-white/10 rounded-xl p-6 sm:p-8 text-center text-slate-400 text-sm bg-[#161B22]/30">
             <Clock className="w-8 h-8 text-slate-500 mb-3 stroke-[1.5]" />
             <p className="text-slate-300 font-medium text-sm">No active task in sprint.</p>
             <p className="text-slate-500 text-xs mt-1.5 max-w-xs">
@@ -915,7 +920,7 @@ export const AgileBoard: React.FC = () => {
       {/* ========================================================================= */}
       {/* COLUMN 3: DONE TODAY (Col span 3)                                         */}
       {/* ========================================================================= */}
-      <section className="col-span-3 flex flex-col bg-[#0D1117] rounded-xl border border-white/[0.07] p-4 shadow-card min-h-0">
+      <section className="col-span-3 flex flex-col bg-[#0D1117] rounded-xl border border-white/[0.07] p-3 sm:p-4 shadow-card min-h-0">
         {/* Header: Title and count badge */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.06]">
           <div className="flex items-center gap-2">
@@ -943,10 +948,10 @@ export const AgileBoard: React.FC = () => {
                     <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] text-[#94A3B8] line-through leading-snug font-medium">
+                    <p className="text-[12px] text-[#94A3B8] line-through leading-snug font-medium break-words">
                       {task.title}
                     </p>
-                    <div className="flex items-center justify-between mt-1.5 text-[10px] text-slate-500 font-mono">
+                    <div className="flex flex-wrap items-center justify-between gap-1 mt-1.5 text-[10px] text-slate-500 font-mono">
                       <span className="tabular-nums">{task.completedAt || 'Today'}</span>
                       <div className="flex items-center gap-1.5">
                         <span className="text-[#00E599] font-medium">

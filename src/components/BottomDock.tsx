@@ -87,7 +87,7 @@ export const BottomDock: React.FC = () => {
       {/* ===================================================================== */}
       {/* Left: YouTube Focus Stream Selector & Audio Controls                  */}
       {/* ===================================================================== */}
-      <div className="flex items-center gap-3 w-[390px] min-w-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 max-w-[340px] min-w-0">
         {/* Headphone Icon with Active Neon Mint Visualizer Pulse Dot */}
         <div className="relative flex items-center justify-center shrink-0">
           <button
@@ -113,10 +113,10 @@ export const BottomDock: React.FC = () => {
         <div className="relative min-w-0 flex-1">
           <button
             onClick={() => setIsPresetsOpen(!isPresetsOpen)}
-            className="flex items-center gap-1.5 text-left group cursor-pointer max-w-full"
+            className="flex items-center gap-1.5 text-left group cursor-pointer max-w-full min-w-0"
             title="Choose focus ambient stream"
           >
-            <span className="text-[12px] font-semibold text-slate-200 group-hover:text-white truncate max-w-[155px]">
+            <span className="text-[12px] font-semibold text-slate-200 group-hover:text-white truncate max-w-[110px] sm:max-w-[155px]">
               {activeTrack?.title || 'Lofi Chill Radio'}
             </span>
             <ChevronUp
@@ -262,18 +262,18 @@ export const BottomDock: React.FC = () => {
       {/* ===================================================================== */}
       {/* Center: Interval Mode Switcher (Pill capsules)                        */}
       {/* ===================================================================== */}
-      <div className="inline-flex p-1 rounded-full bg-[#161B22] border border-white/[0.08] shadow-card">
+      <div className="inline-flex p-1 rounded-full bg-[#161B22] border border-white/[0.08] shadow-card shrink-0">
         {(
           [
-            { id: 'focus', label: '25m Focus' },
-            { id: 'shortBreak', label: '5m Short Break' },
-            { id: 'longBreak', label: '15m Long Break' },
-          ] as { id: PomodoroMode; label: string }[]
+            { id: 'focus', label: 'Focus', min: '25m' },
+            { id: 'shortBreak', label: 'Short Break', min: '5m' },
+            { id: 'longBreak', label: 'Long Break', min: '15m' },
+          ] as { id: PomodoroMode; label: string; min: string }[]
         ).map((m) => (
           <button
             key={m.id}
             onClick={() => setMode(m.id)}
-            className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-tight transition-all cursor-pointer ${
+            className={`px-2.5 sm:px-3 py-1 rounded-full text-[10.5px] sm:text-[11px] font-semibold tracking-tight transition-all cursor-pointer ${
               pomodoro.mode === m.id
                 ? m.id === 'focus'
                   ? 'bg-[#00E599] text-black font-bold shadow-mint-btn'
@@ -281,7 +281,8 @@ export const BottomDock: React.FC = () => {
                 : 'text-[#94A3B8] hover:text-white font-medium'
             }`}
           >
-            {m.label}
+            <span className="hidden lg:inline">{m.min} </span>
+            <span>{m.label}</span>
           </button>
         ))}
       </div>
@@ -289,10 +290,10 @@ export const BottomDock: React.FC = () => {
       {/* ===================================================================== */}
       {/* Right: Cloud Sync Status (Guest / Offline Mode)                       */}
       {/* ===================================================================== */}
-      <div className="flex items-center justify-end gap-2.5 w-[390px] text-right">
+      <div className="flex items-center justify-end gap-2.5 flex-1 max-w-[340px] text-right min-w-0">
         <button
           onClick={toggleGuestMode}
-          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all cursor-pointer text-[11px] ${
+          className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full border transition-all cursor-pointer text-[10.5px] sm:text-[11px] shrink-0 ${
             sync.isGuest
               ? 'bg-[#161B22] border-white/[0.07] text-[#94A3B8] hover:border-white/20'
               : 'bg-[#00E599]/10 border-[#00E599]/40 text-[#00E599]'
@@ -301,17 +302,17 @@ export const BottomDock: React.FC = () => {
         >
           {sync.isGuest ? (
             <>
-              <CloudOff className="w-3.5 h-3.5 text-slate-400" />
-              <span>Guest / Offline Mode</span>
-              <span className="text-[10px] text-[#00E599] font-mono underline hover:text-[#4DFFB2]">
+              <CloudOff className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate max-w-[90px] sm:max-w-none">Guest / Offline</span>
+              <span className="text-[10px] text-[#00E599] font-mono underline hover:text-[#4DFFB2] shrink-0">
                 Sign In
               </span>
             </>
           ) : (
             <>
-              <Cloud className="w-3.5 h-3.5 text-[#00E599]" />
-              <span className="font-semibold text-white">Supabase Cloud Sync</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse" />
+              <Cloud className="w-3.5 h-3.5 text-[#00E599] shrink-0" />
+              <span className="font-semibold text-white truncate max-w-[120px] sm:max-w-none">Cloud Sync</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00E599] animate-pulse shrink-0" />
             </>
           )}
         </button>
