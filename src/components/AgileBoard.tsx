@@ -74,14 +74,42 @@ export const AgileBoard: React.FC = () => {
   const focusTask = tasks.find((t) => t.status === 'in_focus') || null;
   const doneTasks = tasks.filter((t) => t.status === 'done');
 
-  // Condition: All tasks are completed, both backlog and in-focus are empty
+  // Track whether active sprint tasks have existed in this session
+  const [hasHadActiveTasks, setHasHadActiveTasks] = useState(
+    () => tasks.some((t) => t.status === 'backlog' || t.status === 'in_focus')
+  );
+  // Track whether any task was completed during this active session
+  const [hasCompletedInSession, setHasCompletedInSession] = useState(false);
+  const prevDoneCountRef = useRef(doneTasks.length);
+
+  // When tasks are added or present in backlog / focus, record that the user has an active sprint
+  useEffect(() => {
+    if (backlogTasks.length > 0 || focusTask !== null) {
+      setHasHadActiveTasks(true);
+    }
+  }, [backlogTasks.length, focusTask]);
+
+  // Record whenever a task transitions into 'done' during this session
+  useEffect(() => {
+    if (doneTasks.length > prevDoneCountRef.current) {
+      setHasCompletedInSession(true);
+    }
+    prevDoneCountRef.current = doneTasks.length;
+  }, [doneTasks.length]);
+
+  // Condition: Only celebrate if the user actually had active tasks, completed task(s) during this session,
+  // and now both backlog and in-focus are completely cleared!
   const isAllDone =
-    tasks.length > 0 && backlogTasks.length === 0 && focusTask === null && doneTasks.length > 0;
+    hasHadActiveTasks &&
+    hasCompletedInSession &&
+    backlogTasks.length === 0 &&
+    focusTask === null &&
+    doneTasks.length > 0;
   const totalPomosDone = doneTasks.reduce((sum, t) => sum + (t.pomosDone || 1), 0);
 
   const confettiRef = useRef<ConfettiRef | null>(null);
   const wasAllDoneRef = useRef(false);
-  const [showCelebrationBanner, setShowCelebrationBanner] = useState(true);
+  const [showCelebrationBanner, setShowCelebrationBanner] = useState(false);
 
   // Automatically trigger confetti when transitioning into all-done state
   useEffect(() => {
@@ -332,6 +360,18 @@ export const AgileBoard: React.FC = () => {
               <div className="text-[11px] text-slate-400 mt-1 max-w-[190px] leading-relaxed">
                 Zero pending tasks remaining. Everything scheduled for today is done!
               </div>
+            </div>
+          )}
+
+          {backlogTasks.length === 0 && !isAllDone && !isAddingTask && (
+            <div className="py-8 px-4 rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center my-4 bg-white/[0.01]">
+              <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-500 mb-2">
+                <Plus className="w-4 h-4" />
+              </div>
+              <p className="text-xs font-medium text-slate-400">Backlog is empty</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Add your tasks for today's sprint below
+              </p>
             </div>
           )}
 
@@ -864,7 +904,9 @@ export const AgileBoard: React.FC = () => {
             <Clock className="w-8 h-8 text-slate-500 mb-3 stroke-[1.5]" />
             <p className="text-slate-300 font-medium text-sm">No active task in sprint.</p>
             <p className="text-slate-500 text-xs mt-1.5 max-w-xs">
-              Select a task from your backlog to start focusing.
+              {backlogTasks.length > 0
+                ? 'Select or drag a task from your backlog to start focusing.'
+                : 'Add tasks to your backlog to start your day sprint.'}
             </p>
           </div>
         )}
