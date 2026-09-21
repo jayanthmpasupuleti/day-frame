@@ -87,7 +87,7 @@ export const BottomDock: React.FC = () => {
       {/* ===================================================================== */}
       {/* Left: YouTube Focus Stream Selector & Audio Controls                  */}
       {/* ===================================================================== */}
-      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 max-w-[340px] min-w-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 max-w-[380px] min-w-0">
         {/* Headphone Icon with Active Dynamic Pulse Dot */}
         <div className="relative flex items-center justify-center shrink-0">
           <button
@@ -116,7 +116,7 @@ export const BottomDock: React.FC = () => {
             className="flex items-center gap-1.5 text-left group cursor-pointer max-w-full min-w-0"
             title="Choose focus ambient stream"
           >
-            <span className="text-[12px] font-semibold text-slate-200 group-hover:text-white truncate max-w-[110px] sm:max-w-[155px]">
+            <span className="text-[12px] font-semibold text-slate-200 group-hover:text-white truncate max-w-[130px] sm:max-w-[175px]">
               {activeTrack?.title || 'Lofi Chill Radio'}
             </span>
             <ChevronUp
@@ -126,7 +126,7 @@ export const BottomDock: React.FC = () => {
             />
           </button>
 
-          <div className="flex items-center gap-2 text-[10px] text-[#94A3B8] mt-0.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] text-[#94A3B8] mt-0.5 min-w-0">
             <span
               className={`w-1.5 h-1.5 rounded-full inline-block shrink-0 ${
                 audio.isPlayingAudio
@@ -134,17 +134,18 @@ export const BottomDock: React.FC = () => {
                   : 'bg-slate-500'
               }`}
             />
-            <span className="font-mono truncate">
+            <span className="font-mono whitespace-nowrap shrink-0">
               {audio.isPlayingAudio ? 'Focus Audio' : 'Paused'}
             </span>
-            <span className="text-slate-600">•</span>
+            <span className="text-slate-600 shrink-0 select-none">•</span>
 
             {/* Auto-Sync Toggle Pill */}
             <button
+              type="button"
               onClick={() =>
                 updateSettings({ autoSyncAudio: !pomodoro.settings.autoSyncAudio })
               }
-              className={`px-1.5 py-0.2 rounded-full text-[9.5px] font-mono font-medium transition-all cursor-pointer flex items-center gap-1 border ${
+              className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-mono font-medium transition-all cursor-pointer border leading-none ${
                 pomodoro.settings.autoSyncAudio
                   ? 'bg-primary/15 text-primary border-primary/30 shadow-xs'
                   : 'bg-[var(--bg-inset)] text-slate-500 border-[var(--border-card)] hover:text-slate-300'
@@ -152,13 +153,13 @@ export const BottomDock: React.FC = () => {
               title="Automatically sync audio playback with Pomodoro sprint state"
             >
               <Zap
-                className={`w-2.5 h-2.5 ${
+                className={`w-2.5 h-2.5 shrink-0 ${
                   pomodoro.settings.autoSyncAudio
                     ? 'fill-current text-primary'
                     : 'text-slate-500'
                 }`}
               />
-              <span>Auto-Sync</span>
+              <span className="whitespace-nowrap leading-none">Auto-Sync</span>
             </button>
           </div>
 

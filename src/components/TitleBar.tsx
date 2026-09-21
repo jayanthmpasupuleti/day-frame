@@ -76,20 +76,20 @@ export const TitleBar: React.FC = () => {
       className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-[var(--border-card)] bg-[var(--bg-card)]/90 backdrop-blur-xl relative z-30 select-none cursor-default"
     >
       {/* Left: Native macOS Traffic Lights space + Dayframe Brand with Dynamic Pulse */}
-      <div data-tauri-drag-region className="flex items-center gap-2.5 flex-1 max-w-[240px] pl-[70px] min-w-0">
-        <div className="flex items-center gap-2 pointer-events-none min-w-0">
+      <div data-tauri-drag-region className="flex items-center gap-2.5 flex-1 max-w-[340px] pl-[70px] min-w-0 shrink-0">
+        <div className="flex items-center gap-2 pointer-events-none min-w-0 shrink-0">
           <span className="relative flex h-2 w-2 shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_8px_var(--glow-primary)]" />
           </span>
-          <span className="font-semibold text-[13px] tracking-tight text-white truncate">
+          <span className="font-bold text-[13px] tracking-tight text-white shrink-0">
             Dayframe
           </span>
-          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/[0.05] border border-white/[0.07] text-[#94A3B8] hidden sm:inline shrink-0">
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.07] text-[#94A3B8] hidden sm:inline shrink-0 leading-none">
             v5.0
           </span>
           {((previewThemeId || activeTheme) === 'sage-chakra') && (
-            <span className="text-[9.5px] font-mono px-2 py-0.2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1 shrink-0 font-bold shadow-xs animate-in fade-in">
+            <span className="text-[9.5px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center gap-1 shrink-0 font-bold shadow-xs animate-in fade-in leading-none">
               <Flame className="w-2.5 h-2.5 text-[#FF6B00] fill-[#FF6B00]" />
               <span>Legendary Tier</span>
             </span>
