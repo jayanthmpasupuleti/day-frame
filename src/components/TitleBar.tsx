@@ -6,6 +6,7 @@ import {
   Volume2,
   VolumeX,
   Headphones,
+  Palette,
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 
@@ -17,6 +18,8 @@ export const TitleBar: React.FC = () => {
     setPomodoroMode,
     audio,
     toggleAudioPlaying,
+    openThemeModal,
+    isProUnlocked,
   } = useDayframeStore();
 
   const minutes = Math.floor(pomodoro.timeLeft / 60);
@@ -67,14 +70,14 @@ export const TitleBar: React.FC = () => {
       data-tauri-drag-region
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
-      className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-white/[0.07] bg-[#0D1117]/90 backdrop-blur-xl relative z-30 select-none cursor-default"
+      className="h-[46px] min-h-[46px] px-4 flex items-center justify-between border-b border-[var(--border-card)] bg-[var(--bg-card)]/90 backdrop-blur-xl relative z-30 select-none cursor-default"
     >
-      {/* Left: Native macOS Traffic Lights space + Dayframe Brand with Neon Mint Pulse */}
+      {/* Left: Native macOS Traffic Lights space + Dayframe Brand with Dynamic Pulse */}
       <div data-tauri-drag-region className="flex items-center gap-2.5 flex-1 max-w-[240px] pl-[70px] min-w-0">
         <div className="flex items-center gap-2 pointer-events-none min-w-0">
           <span className="relative flex h-2 w-2 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_8px_#00E599]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_8px_var(--glow-primary)]" />
           </span>
           <span className="font-semibold text-[13px] tracking-tight text-white truncate">
             Dayframe
@@ -87,7 +90,7 @@ export const TitleBar: React.FC = () => {
 
       {/* Center: Live Pomodoro Pill */}
       <div data-tauri-drag-region className="flex items-center justify-center shrink-0 min-w-0">
-        <div className="inline-flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#161B22] border border-white/[0.08] shadow-card backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-1 rounded-full bg-[var(--bg-inset)] border border-[var(--border-card)] shadow-card backdrop-blur-md">
           {/* Mode Pill Tag */}
           <button
             onClick={() => {
@@ -101,10 +104,10 @@ export const TitleBar: React.FC = () => {
             }}
             className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full transition-all cursor-pointer ${
               isUntimed
-                ? 'text-[#A78BFA] bg-[#A78BFA]/15 border border-[#A78BFA]/30'
+                ? 'text-[var(--accent-audio)] bg-[var(--accent-audio)]/15 border border-[var(--accent-audio)]/30'
                 : pomodoro.mode === 'focus'
-                ? 'text-[#00E599] bg-[#00E599]/15 border border-[#00E599]/30'
-                : 'text-[#F59E0B] bg-[#F59E0B]/15 border border-[#F59E0B]/30'
+                ? 'text-primary bg-primary/15 border border-primary/30'
+                : 'text-[var(--accent-badge)] bg-[var(--accent-badge)]/15 border border-[var(--accent-badge)]/30'
             }`}
             title="Switch Focus/Break interval"
           >
@@ -122,8 +125,8 @@ export const TitleBar: React.FC = () => {
               onClick={togglePomodoroRunning}
               className={`flex items-center gap-1 px-2 sm:px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight transition-all cursor-pointer active:scale-95 ${
                 pomodoro.isRunning
-                  ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 hover:bg-[#F59E0B]/30'
-                  : 'bg-[#00E599] text-black hover:bg-[#4DFFB2] shadow-mint-btn'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                  : 'bg-primary text-primaryText hover:brightness-110 shadow-mint-btn'
               }`}
               title={pomodoro.isRunning ? 'Pause timer' : 'Start focus timer'}
             >
@@ -159,16 +162,16 @@ export const TitleBar: React.FC = () => {
         </div>
       </div>
 
-      {/* Right: Ambient Focus Audio widget pill & Local-First badge */}
-      <div data-tauri-drag-region className="flex items-center justify-end gap-2 flex-1 max-w-[240px] shrink-0">
+      {/* Right: Ambient Focus Audio widget pill & Theme Switcher Palette */}
+      <div data-tauri-drag-region className="flex items-center justify-end gap-2 flex-1 max-w-[280px] shrink-0">
         {/* Ambient Focus Audio Widget Pill */}
-        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full bg-[#161B22] border border-white/[0.08] text-slate-300 transition-all text-[11.5px] min-w-0">
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-full bg-[var(--bg-inset)] border border-[var(--border-card)] text-slate-300 transition-all text-[11.5px] min-w-0">
           <button
             onClick={toggleAudioPlaying}
             className="flex items-center gap-1.5 cursor-pointer hover:text-white min-w-0"
             title={audio.isPlayingAudio ? 'Pause focus audio' : 'Play focus audio'}
           >
-            <Headphones className="w-3.5 h-3.5 text-[#A78BFA] shrink-0" />
+            <Headphones className="w-3.5 h-3.5 text-[var(--accent-audio)] shrink-0" />
             <span className="font-medium text-slate-200 max-w-[75px] sm:max-w-[110px] truncate text-[11px]">
               {activeTrack?.title || 'Focus Audio'}
             </span>
@@ -177,22 +180,34 @@ export const TitleBar: React.FC = () => {
           {/* Mini Equalizer animation or Mute Toggle */}
           <button
             onClick={() => useDayframeStore.getState().setVolume(isMuted ? 0.7 : 0)}
-            className="text-slate-400 hover:text-[#A78BFA] transition-colors cursor-pointer ml-0.5"
+            className="text-slate-400 hover:text-[var(--accent-audio)] transition-colors cursor-pointer ml-0.5"
             title={isMuted ? 'Unmute' : 'Mute'}
           >
             {isMuted ? (
               <VolumeX className="w-3.5 h-3.5 text-rose-400" />
             ) : audio.isPlayingAudio ? (
               <div className="flex items-end gap-0.5 h-2.5 px-0.5">
-                <span className="w-0.5 bg-[#A78BFA] rounded-full bar-1" />
-                <span className="w-0.5 bg-[#A78BFA] rounded-full bar-2" />
-                <span className="w-0.5 bg-[#A78BFA] rounded-full bar-3" />
+                <span className="w-0.5 bg-[var(--accent-audio)] rounded-full bar-1" />
+                <span className="w-0.5 bg-[var(--accent-audio)] rounded-full bar-2" />
+                <span className="w-0.5 bg-[var(--accent-audio)] rounded-full bar-3" />
               </div>
             ) : (
               <Volume2 className="w-3.5 h-3.5 text-[#94A3B8]" />
             )}
           </button>
         </div>
+
+        {/* Theme Switcher Palette Button */}
+        <button
+          onClick={openThemeModal}
+          className="p-1.5 rounded-full bg-[var(--bg-inset)] border border-[var(--border-card)] hover:border-white/20 text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center relative group active:scale-95 shrink-0"
+          title="Themes"
+        >
+          <Palette className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
+          {!isProUnlocked && (
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-[var(--bg-card)]" />
+          )}
+        </button>
       </div>
     </header>
   );

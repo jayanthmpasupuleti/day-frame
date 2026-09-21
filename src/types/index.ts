@@ -57,3 +57,26 @@ export interface SyncState {
   isOnline: boolean;
   statusText: string;
 }
+
+export type ThemeId =
+  | 'midnight-mint'
+  | 'cyber-tokyo'
+  | 'nordic-frost'
+  | 'kyoto-amber'
+  | 'obsidian-sunset';
+
+export interface ThemeDefinition {
+  id: ThemeId;
+  name: string;
+  tagline: string;
+  isPro: boolean;
+  colors: {
+    canvas: string;
+    card: string;
+    inset: string;
+    primary: string;
+    secondary: string;
+    glow: string;
+  };
+}
+

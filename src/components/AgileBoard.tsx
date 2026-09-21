@@ -270,12 +270,12 @@ export const AgileBoard: React.FC = () => {
   return (
     <>
       <ConfettiCanvas ref={confettiRef} />
-      <main className="flex-1 p-3.5 sm:p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-[#0A0D14] relative">
+      <main className="flex-1 p-3.5 sm:p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-[var(--bg-canvas)] relative transition-colors duration-300">
         {/* Top Celebration Banner on Screen */}
         {isAllDone && showCelebrationBanner && (
-          <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#00E599]/15 via-[#161B22] to-[#A78BFA]/15 border border-[#00E599]/30 shadow-mint-glow flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 animate-banner-slide-down shrink-0">
+          <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary/15 via-[var(--bg-inset)] to-[var(--accent-audio)]/15 border border-primary/30 shadow-mint-glow flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 animate-banner-slide-down shrink-0">
             <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-7 h-7 rounded-lg bg-[#00E599]/20 border border-[#00E599]/40 flex items-center justify-center text-sm shadow-sm shrink-0">
+              <div className="w-7 h-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-sm shadow-sm shrink-0">
                 🎉
               </div>
               <div className="min-w-0">
@@ -291,7 +291,7 @@ export const AgileBoard: React.FC = () => {
               <button
                 type="button"
                 onClick={() => confettiRef.current?.fire()}
-                className="px-2.5 py-1 rounded-lg bg-[#00E599]/20 hover:bg-[#00E599]/35 text-[#00E599] text-[10.5px] font-mono font-bold border border-[#00E599]/40 transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
+                className="px-2.5 py-1 rounded-lg bg-primary/20 hover:bg-primary/35 text-primary text-[10.5px] font-mono font-bold border border-primary/40 transition-colors cursor-pointer flex items-center gap-1.5 active:scale-95"
                 title="Blast confetti again!"
               >
                 <span>🎊 Confetti</span>
@@ -317,14 +317,14 @@ export const AgileBoard: React.FC = () => {
         onDragOver={handleDragOverBacklog}
         onDragLeave={handleDragLeaveBacklog}
         onDrop={handleDropOnBacklog}
-        className={`col-span-4 flex flex-col bg-[#0D1117] rounded-xl border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 ${
+        className={`col-span-4 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 ${
           isDragOverBacklog
-            ? 'border-[#A78BFA] ring-2 ring-[#A78BFA]/30 bg-[#A78BFA]/[0.03] scale-[1.006]'
-            : 'border-white/[0.07]'
+            ? 'border-[var(--accent-audio)] ring-2 ring-[var(--accent-audio)]/30 bg-[var(--accent-audio)]/[0.03] scale-[1.006]'
+            : 'border-[var(--border-card)]'
         }`}
       >
         {/* Header: Column title and active count badge */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-slate-400" />
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
@@ -335,7 +335,7 @@ export const AgileBoard: React.FC = () => {
             <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
               Drag to Focus
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#161B22] text-slate-300 border border-white/[0.06] tabular-nums">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[var(--bg-inset)] text-slate-300 border border-[var(--border-card)] tabular-nums">
               {backlogTasks.length}
             </span>
           </div>
@@ -343,7 +343,7 @@ export const AgileBoard: React.FC = () => {
 
         {/* Drag Over Backlog Drop Indicator */}
         {isDragOverBacklog && (
-          <div className="mb-3 py-2.5 px-3 rounded-xl border-2 border-dashed border-[#A78BFA] bg-[#A78BFA]/10 text-[#A78BFA] font-bold text-[11px] flex items-center justify-center gap-2 animate-pulse">
+          <div className="mb-3 py-2.5 px-3 rounded-xl border-2 border-dashed border-[var(--accent-audio)] bg-[var(--accent-audio)]/10 text-[var(--accent-audio)] font-bold text-[11px] flex items-center justify-center gap-2 animate-pulse">
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Drop here to return task to Backlog</span>
           </div>
@@ -352,8 +352,8 @@ export const AgileBoard: React.FC = () => {
         {/* Task Cards List */}
         <div className="flex-1 space-y-2.5 overflow-y-auto pr-1">
           {isAllDone && (
-            <div className="py-7 px-4 rounded-xl bg-[#161B22]/40 border border-dashed border-[#00E599]/25 flex flex-col items-center justify-center text-center animate-card-enter my-3">
-              <div className="w-10 h-10 rounded-full bg-[#00E599]/10 border border-[#00E599]/30 flex items-center justify-center text-[#00E599] mb-2 shadow-mint-glow">
+            <div className="py-7 px-4 rounded-xl bg-[var(--bg-inset)]/40 border border-dashed border-primary/25 flex flex-col items-center justify-center text-center animate-card-enter my-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary mb-2 shadow-mint-glow">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div className="text-xs font-bold text-slate-200">Backlog 100% Cleared!</div>
@@ -387,10 +387,10 @@ export const AgileBoard: React.FC = () => {
                 draggable={true}
                 onDragStart={(e) => handleDragStartFromBacklog(e, task.id)}
                 onDragEnd={handleDragEnd}
-                className={`group relative p-3 rounded-xl bg-[#161B22] border transition-all duration-200 cursor-grab active:cursor-grabbing hover:-translate-y-[1px] ${
+                className={`group relative p-3 rounded-xl bg-[var(--bg-inset)] border transition-all duration-200 cursor-grab active:cursor-grabbing hover:-translate-y-[1px] ${
                   isBeingDragged
-                    ? 'opacity-35 scale-95 border-dashed border-[#00E599]/80 rotate-1 shadow-mint-glow bg-[#161B22]/60'
-                    : 'border-white/[0.05] hover:border-white/15 hover:bg-[#1A202C] hover:shadow-card'
+                    ? 'opacity-35 scale-95 border-dashed border-primary/80 rotate-1 shadow-mint-glow bg-[var(--bg-inset)]/60'
+                    : 'border-[var(--border-card)] hover:border-white/20 hover:shadow-card'
                 }`}
                 title={
                   focusTask
@@ -403,7 +403,7 @@ export const AgileBoard: React.FC = () => {
                 {/* Title & Grip / Hover Actions */}
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                    <div className="text-slate-600 group-hover:text-[#00E599] transition-colors mt-0.5 shrink-0">
+                    <div className="text-slate-600 group-hover:text-primary transition-colors mt-0.5 shrink-0">
                       <GripVertical className="w-3.5 h-3.5 stroke-[2]" />
                     </div>
                     <span className="text-[13px] font-medium text-slate-200 leading-snug group-hover:text-white flex-1 break-words min-w-0">
@@ -433,7 +433,7 @@ export const AgileBoard: React.FC = () => {
                       className={`px-2 py-0.5 rounded-full text-[10.5px] font-medium transition-all flex items-center gap-1 ${
                         focusTask !== null
                           ? 'opacity-30 bg-white/[0.04] text-slate-500 cursor-not-allowed'
-                          : 'cursor-pointer bg-white/[0.06] hover:bg-[#00E599] text-slate-300 hover:text-[#0A0D14] border border-white/[0.08] hover:border-[#00E599]'
+                          : 'cursor-pointer bg-white/[0.06] hover:bg-primary text-slate-300 hover:text-primaryText border border-white/[0.08] hover:border-primary'
                       }`}
                       title={
                         focusTask !== null
@@ -539,14 +539,14 @@ export const AgileBoard: React.FC = () => {
           {isAddingTask && (
             <form
               onSubmit={handleCreateTask}
-              className="p-3 rounded-xl bg-[#161B22] border border-[#00E599]/40 space-y-2.5 text-xs shadow-mint-glow animate-in fade-in"
+              className="p-3 rounded-xl bg-[var(--bg-inset)] border border-primary/40 space-y-2.5 text-xs shadow-mint-glow animate-in fade-in"
             >
               <input
                 type="text"
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
                 placeholder="Add task to backlog..."
-                className="w-full bg-[#0D1117] px-3 py-1.5 rounded-lg text-white border border-white/15 placeholder-slate-500 focus:outline-none focus:border-[#00E599] text-[12px]"
+                className="w-full bg-[var(--bg-card)] px-3 py-1.5 rounded-lg text-white border border-white/15 placeholder-slate-500 focus:outline-none focus:border-primary text-[12px]"
                 autoFocus
               />
 
@@ -556,7 +556,7 @@ export const AgileBoard: React.FC = () => {
                   <select
                     value={taskTag}
                     onChange={(e) => setTaskTag(e.target.value)}
-                    className="bg-[#0D1117] text-slate-300 px-2 py-1 rounded-full border border-white/10 text-[10.5px] font-mono cursor-pointer shrink-0"
+                    className="bg-[var(--bg-card)] text-slate-300 px-2 py-1 rounded-full border border-white/10 text-[10.5px] font-mono cursor-pointer shrink-0"
                   >
                     <option value="#dev">#dev</option>
                     <option value="#writing">#writing</option>
@@ -565,22 +565,22 @@ export const AgileBoard: React.FC = () => {
                     <option value="#routine">#routine</option>
                   </select>
 
-                  <div className="flex items-center gap-1 bg-[#0D1117] px-2 py-0.5 rounded-full border border-white/10 shrink-0">
+                  <div className="flex items-center gap-1 bg-[var(--bg-card)] px-2 py-0.5 rounded-full border border-white/10 shrink-0">
                     {taskDuration === 0 ? (
-                      <Coffee className="w-3 h-3 text-[#A78BFA] shrink-0" />
+                      <Coffee className="w-3 h-3 text-[var(--accent-audio)] shrink-0" />
                     ) : (
-                      <Timer className="w-3 h-3 text-[#00E599] shrink-0" />
+                      <Timer className="w-3 h-3 text-primary shrink-0" />
                     )}
                     <select
                       value={taskDuration}
                       onChange={(e) => setTaskDuration(parseInt(e.target.value) || 0)}
                       className="bg-transparent text-white font-mono text-[10.5px] focus:outline-none cursor-pointer"
                     >
-                      <option value={0} className="bg-[#0D1117]">
+                      <option value={0} className="bg-[var(--bg-card)]">
                         0m (Untimed)
                       </option>
                       {DURATION_OPTIONS.filter((d) => d > 0).map((d) => (
-                        <option key={d} value={d} className="bg-[#0D1117]">
+                        <option key={d} value={d} className="bg-[var(--bg-card)]">
                           {d}m
                         </option>
                       ))}
@@ -588,7 +588,7 @@ export const AgileBoard: React.FC = () => {
                   </div>
 
                   {taskDuration > 0 && (
-                    <div className="flex items-center gap-1 bg-[#0D1117] px-2 py-0.5 rounded-full border border-white/10 shrink-0">
+                    <div className="flex items-center gap-1 bg-[var(--bg-card)] px-2 py-0.5 rounded-full border border-white/10 shrink-0">
                       <span className="text-[10px]">🍅</span>
                       <input
                         type="number"
@@ -607,7 +607,7 @@ export const AgileBoard: React.FC = () => {
                 <div className="flex items-center gap-1.5 ml-auto shrink-0">
                   <button
                     type="submit"
-                    className="px-3.5 py-1 bg-[#00E599] hover:bg-[#4DFFB2] active:scale-95 text-black rounded-full text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer"
+                    className="px-3.5 py-1 bg-primary hover:brightness-110 active:scale-95 text-primaryText rounded-full text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer"
                   >
                     Add
                   </button>
@@ -625,12 +625,12 @@ export const AgileBoard: React.FC = () => {
           )}
         </div>
 
-        {/* Bottom Inline Add Task Bar: #161B22 background, 1px border. Fixed double '+' */}
+        {/* Bottom Inline Add Task Bar: bg-inset background, 1px border. */}
         {!isAddingTask && (
           <div className="mt-3 pt-2">
             <button
               onClick={() => setIsAddingTask(true)}
-              className="flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl bg-[#161B22] border border-white/[0.08] hover:border-[#00E599]/40 text-[#94A3B8] hover:text-[#00E599] text-[11.5px] font-medium transition-all cursor-pointer shadow-xs"
+              className="flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl bg-[var(--bg-inset)] border border-[var(--border-card)] hover:border-primary/40 text-[#94A3B8] hover:text-primary text-[11.5px] font-medium transition-all cursor-pointer shadow-xs"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Add Task</span>
@@ -646,29 +646,29 @@ export const AgileBoard: React.FC = () => {
         onDragOver={handleDragOverFocus}
         onDragLeave={handleDragLeaveFocus}
         onDrop={handleDropOnFocus}
-        className={`col-span-5 flex flex-col bg-[#0D1117] rounded-xl border p-3 sm:p-4 shadow-[0_0_24px_rgba(0,229,153,0.08)] relative overflow-hidden min-h-0 transition-all duration-200 ${
+        className={`col-span-5 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 shadow-[0_0_24px_var(--glow-primary-subtle)] relative overflow-hidden min-h-0 transition-all duration-200 ${
           isDragOverFocus && focusTask !== null
             ? 'border-amber-500/60 ring-2 ring-amber-500/30 bg-amber-500/[0.04]'
             : isDragOverFocus && focusTask === null
-            ? 'border-[#00E599] ring-2 ring-[#00E599]/40 bg-[#00E599]/[0.04] shadow-[0_0_35px_rgba(0,229,153,0.22)] scale-[1.008]'
+            ? 'border-primary ring-2 ring-primary/40 bg-primary/[0.04] shadow-[0_0_35px_var(--glow-primary)] scale-[1.008]'
             : focusTask !== null
-            ? 'border-[#00E599]/40'
-            : 'border-white/[0.08]'
+            ? 'border-primary/40'
+            : 'border-[var(--border-card)]'
         }`}
       >
-        {/* Ambient subtle neon emerald halo */}
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-32 bg-[#00E599]/12 rounded-full blur-3xl pointer-events-none" />
+        {/* Ambient subtle dynamic halo */}
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-32 bg-[var(--glow-primary)]/20 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Column Header: Title with emerald pulse dot */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#00E599]/20 relative z-10">
+        {/* Column Header: Title with dynamic pulse dot */}
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-primary/20 relative z-10">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_8px_#00E599]" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_8px_var(--glow-primary)]" />
             </span>
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-[#00E599] font-mono flex items-center gap-1.5">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-primary font-mono flex items-center gap-1.5">
               <span>IN FOCUS</span>
-              <Sparkles className="w-3 h-3 text-[#00E599]" />
+              <Sparkles className="w-3 h-3 text-primary" />
             </h2>
           </div>
 
@@ -679,7 +679,7 @@ export const AgileBoard: React.FC = () => {
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border tabular-nums ${
                 focusTask
-                  ? 'bg-[#00E599]/15 text-[#00E599] border-[#00E599]/30'
+                  ? 'bg-primary/15 text-primary border-primary/30'
                   : 'bg-white/[0.05] text-slate-400 border-white/10'
               }`}
             >
@@ -702,8 +702,8 @@ export const AgileBoard: React.FC = () => {
 
         {/* Drop Guide when slot is empty */}
         {isDragOverFocus && focusTask === null && (
-          <div className="mb-3 py-3 px-4 rounded-xl border-2 border-dashed border-[#00E599] bg-[#00E599]/15 text-[#00E599] font-bold text-[12px] flex items-center justify-center gap-2 shadow-mint-glow animate-pulse relative z-20">
-            <Sparkles className="w-4 h-4 text-[#00E599]" />
+          <div className="mb-3 py-3 px-4 rounded-xl border-2 border-dashed border-primary bg-primary/15 text-primary font-bold text-[12px] flex items-center justify-center gap-2 shadow-mint-glow animate-pulse relative z-20">
+            <Sparkles className="w-4 h-4 text-primary" />
             <span>Drop here to start focusing!</span>
           </div>
         )}
@@ -722,9 +722,9 @@ export const AgileBoard: React.FC = () => {
             draggable={true}
             onDragStart={(e) => handleDragStartFromFocus(e, focusTask.id)}
             onDragEnd={handleDragEnd}
-            className={`flex-1 flex flex-col justify-between bg-[#161B22]/95 rounded-xl p-4 border border-white/10 shadow-lg relative z-10 transition-all duration-300 ${
+            className={`flex-1 flex flex-col justify-between bg-[var(--bg-inset)]/95 rounded-xl p-4 border border-[var(--border-card)] shadow-lg relative z-10 transition-all duration-300 ${
               justDroppedId === focusTask.id ? 'animate-drop-glow animate-card-enter' : ''
-            } ${draggedTaskId === focusTask.id ? 'opacity-40 scale-95 border-dashed border-[#A78BFA]' : ''}`}
+            } ${draggedTaskId === focusTask.id ? 'opacity-40 scale-95 border-dashed border-[var(--accent-audio)]' : ''}`}
             title="Drag back to Backlog to free slot"
           >
             <div>
@@ -732,7 +732,7 @@ export const AgileBoard: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div
-                    className="text-slate-600 hover:text-[#00E599] transition-colors cursor-grab active:cursor-grabbing"
+                    className="text-slate-600 hover:text-primary transition-colors cursor-grab active:cursor-grabbing"
                     title="Drag back to Backlog"
                   >
                     <GripVertical className="w-3.5 h-3.5" />
@@ -748,12 +748,12 @@ export const AgileBoard: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                   {focusTask.durationMinutes === 0 ? (
-                    <span className="flex items-center gap-1 text-[10.5px] font-mono text-[#A78BFA] bg-[#A78BFA]/10 border border-[#A78BFA]/25 px-2.5 py-0.5 rounded-full font-semibold">
-                      <Coffee className="w-3 h-3 text-[#A78BFA]" />
+                    <span className="flex items-center gap-1 text-[10.5px] font-mono text-[var(--accent-audio)] bg-[var(--accent-audio)]/10 border border-[var(--accent-audio)]/25 px-2.5 py-0.5 rounded-full font-semibold">
+                      <Coffee className="w-3 h-3 text-[var(--accent-audio)]" />
                       <span>Untimed</span>
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[11px] font-mono text-[#00E599] bg-[#00E599]/10 border border-[#00E599]/20 px-2.5 py-0.5 rounded-full tabular-nums">
+                    <span className="flex items-center gap-1 text-[11px] font-mono text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full tabular-nums">
                       <span>🍅</span>
                       <span className="font-bold">
                         {focusTask.pomosDone} / {focusTask.pomosEst}
@@ -768,17 +768,17 @@ export const AgileBoard: React.FC = () => {
                 {focusTask.title}
               </h3>
 
-              {/* 6px Progress Track in #161B22 filled with #00E599 by completion ratio */}
+              {/* 6px Progress Track filled with theme primary accent */}
               <div className="space-y-1.5 mb-4">
                 <div className="flex items-center justify-between text-[11px] font-mono">
                   <span className="text-slate-400">Sprint Progress</span>
-                  <span className="text-[#00E599] font-bold tabular-nums">
+                  <span className="text-primary font-bold tabular-nums">
                     {isUntimed ? 'Untimed (Self-Paced)' : `${Math.round(completionRatio * 100)}%`}
                   </span>
                 </div>
-                <div className="h-[6px] w-full bg-[#161B22] rounded-full overflow-hidden border border-white/[0.05]">
+                <div className="h-[6px] w-full bg-[var(--bg-card)] rounded-full overflow-hidden border border-white/[0.05]">
                   <div
-                    className="h-full bg-[#00E599] rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(0,229,153,0.5)]"
+                    className="h-full bg-primary rounded-full transition-all duration-300 shadow-[0_0_8px_var(--glow-primary)]"
                     style={{
                       width: `${isUntimed ? 100 : Math.max(4, Math.round(completionRatio * 100))}%`,
                     }}
@@ -788,9 +788,9 @@ export const AgileBoard: React.FC = () => {
 
               {/* Focus Session Timer Controls Container */}
               {focusTask.durationMinutes === 0 ? (
-                <div className="p-3.5 rounded-xl bg-[#0D1117] border border-[#A78BFA]/20 flex items-center gap-3.5 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-[#A78BFA]/15 border border-[#A78BFA]/30 flex items-center justify-center shrink-0">
-                    <Coffee className="w-5 h-5 text-[#A78BFA]" />
+                <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--accent-audio)]/20 flex items-center gap-3.5 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-[var(--accent-audio)]/15 border border-[var(--accent-audio)]/30 flex items-center justify-center shrink-0">
+                    <Coffee className="w-5 h-5 text-[var(--accent-audio)]" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-[12px] font-semibold text-white">
@@ -802,13 +802,13 @@ export const AgileBoard: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-[#0D1117] border border-white/[0.08] flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] flex flex-wrap items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-3">
                     <div className="relative flex items-center justify-center">
                       <span
                         className={`inline-block w-2.5 h-2.5 rounded-full ${
                           pomodoro.isRunning
-                            ? 'bg-[#00E599] animate-pulse shadow-[0_0_8px_#00E599]'
+                            ? 'bg-primary animate-pulse shadow-[0_0_8px_var(--glow-primary)]'
                             : 'bg-slate-500'
                         }`}
                       />
@@ -828,8 +828,8 @@ export const AgileBoard: React.FC = () => {
                       onClick={toggleTimer}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
                         pomodoro.isRunning
-                          ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 hover:bg-[#F59E0B]/30'
-                          : 'bg-[#00E599] text-[#0A0D14] hover:bg-[#4DFFB2] shadow-mint-btn'
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                          : 'bg-primary text-primaryText hover:brightness-110 shadow-mint-btn'
                       }`}
                       title={pomodoro.isRunning ? 'Pause Timer' : 'Start Timer'}
                     >
@@ -858,9 +858,9 @@ export const AgileBoard: React.FC = () => {
               )}
 
               {/* Deliverables / Focus Notes Context */}
-              <div className="text-[11px] text-slate-400 bg-[#0D1117]/80 p-3 rounded-xl border border-white/[0.05] space-y-1">
+              <div className="text-[11px] text-slate-400 bg-[var(--bg-card)]/80 p-3 rounded-xl border border-[var(--border-card)] space-y-1">
                 <div className="flex items-center gap-1.5 text-slate-300 font-semibold mb-1">
-                  <FileText className="w-3.5 h-3.5 text-[#00E599]" />
+                  <FileText className="w-3.5 h-3.5 text-primary" />
                   <span>Deliverables &amp; Focus Context:</span>
                 </div>
                 {(focusTask.notes || [
@@ -875,11 +875,11 @@ export const AgileBoard: React.FC = () => {
               </div>
             </div>
 
-            {/* Bottom Actions: Bold Neon Emerald "Complete Task" & Ghost "Return to Backlog" */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-white/[0.08]">
+            {/* Bottom Actions: Theme Accent "Complete Task" & Ghost "Return to Backlog" */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-[var(--border-card)]">
               <button
                 onClick={() => setTaskStatus(focusTask.id, 'done')}
-                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#00E599] hover:bg-[#4DFFB2] active:scale-[0.98] text-[#0A0D14] font-semibold text-[11.5px] sm:text-[12px] shadow-mint-btn transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-primary hover:brightness-110 active:scale-[0.98] text-primaryText font-semibold text-[11.5px] sm:text-[12px] shadow-mint-btn transition-all cursor-pointer"
                 title="Complete task and reset timer"
               >
                 <Check className="w-4 h-4 stroke-[3]" />
@@ -888,7 +888,7 @@ export const AgileBoard: React.FC = () => {
 
               <button
                 onClick={() => setTaskStatus(focusTask.id, 'backlog')}
-                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[#161B22] hover:bg-white/[0.08] active:scale-[0.98] border border-white/[0.08] text-slate-300 font-medium text-[11.5px] sm:text-[12px] transition-all cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[var(--bg-inset)] hover:bg-white/[0.08] active:scale-[0.98] border border-[var(--border-card)] text-slate-300 hover:text-primary transition-all cursor-pointer"
                 title="Return task to Backlog"
               >
                 <ArrowLeft className="w-3.5 h-3.5 stroke-[2]" />
@@ -905,7 +905,7 @@ export const AgileBoard: React.FC = () => {
           />
         ) : (
           /* Empty State: Dashed Inset Container */
-          <div className="flex-1 flex flex-col items-center justify-center border-dashed border-white/10 rounded-xl p-6 sm:p-8 text-center text-slate-400 text-sm bg-[#161B22]/30">
+          <div className="flex-1 flex flex-col items-center justify-center border-dashed border-white/10 rounded-xl p-6 sm:p-8 text-center text-slate-400 text-sm bg-[var(--bg-inset)]/30">
             <Clock className="w-8 h-8 text-slate-500 mb-3 stroke-[1.5]" />
             <p className="text-slate-300 font-medium text-sm">No active task in sprint.</p>
             <p className="text-slate-500 text-xs mt-1.5 max-w-xs">
@@ -920,16 +920,16 @@ export const AgileBoard: React.FC = () => {
       {/* ========================================================================= */}
       {/* COLUMN 3: DONE TODAY (Col span 3)                                         */}
       {/* ========================================================================= */}
-      <section className="col-span-3 flex flex-col bg-[#0D1117] rounded-xl border border-white/[0.07] p-3 sm:p-4 shadow-card min-h-0">
+      <section className="col-span-3 flex flex-col bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)] p-3 sm:p-4 shadow-card min-h-0">
         {/* Header: Title and count badge */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#00E599]" />
+            <span className="w-2 h-2 rounded-full bg-[var(--accent-secondary)]" />
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
               Done Today
             </h2>
           </div>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/30 tabular-nums">
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[var(--accent-secondary)]/15 text-[var(--accent-secondary)] border border-[var(--accent-secondary)]/30 tabular-nums">
             {doneTasks.length}
           </span>
         </div>
@@ -941,10 +941,10 @@ export const AgileBoard: React.FC = () => {
             return (
               <div
                 key={task.id}
-                className="group p-2.5 rounded-xl bg-[#161B22]/60 border border-white/[0.04] hover:border-white/15 hover:-translate-y-[1px] transition-all duration-200"
+                className="group p-2.5 rounded-xl bg-[var(--bg-inset)]/60 border border-[var(--border-card)] hover:border-white/15 hover:-translate-y-[1px] transition-all duration-200"
               >
                 <div className="flex items-start gap-2.5">
-                  <div className="mt-0.5 w-4 h-4 rounded-full bg-[#00E599]/20 text-[#00E599] flex items-center justify-center shrink-0">
+                  <div className="mt-0.5 w-4 h-4 rounded-full bg-[var(--accent-secondary)]/20 text-[var(--accent-secondary)] flex items-center justify-center shrink-0">
                     <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -954,7 +954,7 @@ export const AgileBoard: React.FC = () => {
                     <div className="flex flex-wrap items-center justify-between gap-1 mt-1.5 text-[10px] text-slate-500 font-mono">
                       <span className="tabular-nums">{task.completedAt || 'Today'}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[#00E599] font-medium">
+                        <span className="text-[var(--accent-secondary)] font-medium">
                           {isTaskUntimed
                             ? '✓ Untimed'
                             : `✓ ${task.pomosDone || 1} Pomos`}

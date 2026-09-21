@@ -10,10 +10,25 @@ import type {
   AudioTrack,
   AudioState,
   SyncState,
+  ThemeId,
 } from '../types';
 import { idbStorage } from './idbStorage';
 
+export type { ThemeId };
+
 export interface DayframeStore {
+  // Theme Engine & Pro State
+  activeTheme: ThemeId;
+  isProUnlocked: boolean;
+  isThemeModalOpen: boolean;
+  previewTheme: ThemeId | null;
+  previewSecondsRemaining: number;
+  setTheme: (theme: ThemeId) => void;
+  unlockProMock: () => void;
+  openThemeModal: () => void;
+  closeThemeModal: () => void;
+  startPreviewTheme: (theme: ThemeId) => void;
+  cancelPreviewTheme: () => void;
   // Habits
   habits: Habit[];
   addHabit: (name: string, category?: Habit['category']) => void;
@@ -229,6 +244,14 @@ const DEFAULT_SETTINGS: PomodoroSettings = {
   shortBreakDuration: 300, // 5 min
   longBreakDuration: 900, // 15 min
   autoSyncAudio: true,
+};
+
+let previewTimer: any = null;
+
+export const applyDomTheme = (theme: ThemeId) => {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
 };
 
 export const useDayframeStore = create<DayframeStore>()(
@@ -692,6 +715,101 @@ export const useDayframeStore = create<DayframeStore>()(
           };
         });
       },
+
+      // --- THEME ENGINE & PRO STATE ---
+      activeTheme: 'midnight-mint',
+      isProUnlocked: false,
+      isThemeModalOpen: false,
+      previewTheme: null,
+      previewSecondsRemaining: 0,
+
+      setTheme: (theme: ThemeId) => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        applyDomTheme(theme);
+        set({
+          activeTheme: theme,
+          previewTheme: null,
+          previewSecondsRemaining: 0,
+        });
+      },
+
+      unlockProMock: () => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        const state = get();
+        const permanentTheme = state.previewTheme || state.activeTheme;
+        applyDomTheme(permanentTheme);
+        set({
+          isProUnlocked: true,
+          activeTheme: permanentTheme,
+          previewTheme: null,
+          previewSecondsRemaining: 0,
+        });
+      },
+
+      openThemeModal: () => set({ isThemeModalOpen: true }),
+
+      closeThemeModal: () => {
+        const state = get();
+        if (state.previewTheme && !state.isProUnlocked) {
+          if (previewTimer) {
+            clearInterval(previewTimer);
+            previewTimer = null;
+          }
+          applyDomTheme(state.activeTheme);
+          set({
+            isThemeModalOpen: false,
+            previewTheme: null,
+            previewSecondsRemaining: 0,
+          });
+        } else {
+          set({ isThemeModalOpen: false });
+        }
+      },
+
+      startPreviewTheme: (theme: ThemeId) => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        applyDomTheme(theme);
+        set({
+          previewTheme: theme,
+          previewSecondsRemaining: 10,
+        });
+
+        previewTimer = setInterval(() => {
+          const currentRemaining = get().previewSecondsRemaining;
+          if (currentRemaining <= 1) {
+            clearInterval(previewTimer);
+            previewTimer = null;
+            applyDomTheme(get().activeTheme);
+            set({
+              previewTheme: null,
+              previewSecondsRemaining: 0,
+            });
+          } else {
+            set({ previewSecondsRemaining: currentRemaining - 1 });
+          }
+        }, 1000);
+      },
+
+      cancelPreviewTheme: () => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        applyDomTheme(get().activeTheme);
+        set({
+          previewTheme: null,
+          previewSecondsRemaining: 0,
+        });
+      },
     }),
     {
       name: 'dayframe-local-store',
@@ -714,8 +832,13 @@ export const useDayframeStore = create<DayframeStore>()(
           isPlayingAudio: false,
         },
         sync: state.sync,
+        activeTheme: state.activeTheme,
+        isProUnlocked: state.isProUnlocked,
       }),
       onRehydrateStorage: () => (state) => {
+        if (state?.activeTheme) {
+          applyDomTheme(state.activeTheme);
+        }
         if (state?.audio?.audioTracks) {
           state.audio.audioTracks = state.audio.audioTracks.map((track) =>
             track.youtubeId === 'jfKfPfyJRdk'
@@ -727,3 +850,5 @@ export const useDayframeStore = create<DayframeStore>()(
     }
   )
 );
+
+export type DayframeState = DayframeStore;

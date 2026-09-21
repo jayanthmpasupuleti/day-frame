@@ -133,7 +133,7 @@ export const HabitPulse: React.FC = () => {
   };
 
   return (
-    <section className="px-5 py-2.5 border-b border-white/[0.07] bg-[#0A0D14]/95 flex flex-col select-none relative z-20 transition-all duration-300 ease-in-out">
+    <section className="px-5 py-2.5 border-b border-[var(--border-card)] bg-[var(--bg-canvas)]/95 flex flex-col select-none relative z-20 transition-all duration-300 ease-in-out">
       {/* --------------------------------------------------------------------- */}
       {/* Header Row: Title, Counts, Toggle Pill, Completion Progress           */}
       {/* --------------------------------------------------------------------- */}
@@ -154,8 +154,8 @@ export const HabitPulse: React.FC = () => {
             onClick={() => setIsHeatmapExpanded((prev) => !prev)}
             className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border transition-all cursor-pointer ${
               isHeatmapExpanded
-                ? 'bg-[#00E599]/15 text-[#00E599] border-[#00E599]/40 shadow-mint-glow'
-                : 'bg-[#161B22] text-[#94A3B8] hover:text-white border-white/[0.08] hover:border-white/20'
+                ? 'bg-primary/15 text-primary border-primary/40 shadow-mint-glow'
+                : 'bg-[var(--bg-inset)] text-[#94A3B8] hover:text-white border-[var(--border-card)] hover:border-white/20'
             }`}
             title={isHeatmapExpanded ? 'Collapse Habit History Grid' : 'Expand Habit History Grid'}
           >
@@ -163,22 +163,22 @@ export const HabitPulse: React.FC = () => {
             <span>History / Grid</span>
             <ChevronDown
               className={`w-3 h-3 transition-transform duration-200 ${
-                isHeatmapExpanded ? 'rotate-180 text-[#00E599]' : ''
+                isHeatmapExpanded ? 'rotate-180 text-primary' : ''
               }`}
             />
           </button>
 
           {/* Completion Progress Indicator */}
           <div className="flex items-center gap-2">
-            <div className="h-1.5 w-20 rounded-full bg-[#161B22] overflow-hidden p-0.2">
+            <div className="h-1.5 w-20 rounded-full bg-[var(--bg-inset)] overflow-hidden p-0.2">
               <div
-                className="h-full rounded-full bg-[#00E599] transition-all duration-300 shadow-mint-glow"
+                className="h-full rounded-full bg-[var(--accent-secondary)] transition-all duration-300 shadow-mint-glow"
                 style={{
                   width: `${habits.length > 0 ? (completedCount / habits.length) * 100 : 0}%`,
                 }}
               />
             </div>
-            <span className="text-[10px] font-mono text-[#00E599] font-bold tabular-nums">
+            <span className="text-[10px] font-mono text-[var(--accent-secondary)] font-bold tabular-nums">
               {habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0}%
             </span>
           </div>
@@ -199,17 +199,17 @@ export const HabitPulse: React.FC = () => {
             onClick={() => toggleHabit(habit.id)}
             className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all cursor-pointer flex-shrink-0 group ${
               habit.completedToday
-                ? 'bg-[#00E599]/10 border-[#00E599] shadow-[0_0_12px_rgba(0,229,153,0.15)] text-white'
-                : 'bg-[#161B22] border-white/[0.06] hover:border-white/20 text-slate-300'
+                ? 'bg-[var(--accent-secondary)]/15 border-[var(--accent-secondary)] shadow-[0_0_12px_var(--glow-primary)] text-white'
+                : 'bg-[var(--bg-inset)] border-[var(--border-card)] hover:border-white/20 text-slate-300'
             }`}
           >
             {/* Circle State Indicator */}
             {habit.completedToday ? (
-              <div className="w-4 h-4 rounded-full bg-[#00E599] flex items-center justify-center text-black shadow-mint-btn">
+              <div className="w-4 h-4 rounded-full bg-[var(--accent-secondary)] flex items-center justify-center text-[var(--accent-primary-text)] shadow-mint-btn">
                 <Check className="w-2.5 h-2.5 stroke-[3]" />
               </div>
             ) : (
-              <div className="w-4 h-4 rounded-full border border-white/25 bg-[#0D1117] group-hover:border-[#00E599]/60 transition-colors flex items-center justify-center" />
+              <div className="w-4 h-4 rounded-full border border-white/25 bg-[var(--bg-card)] group-hover:border-[var(--accent-secondary)]/60 transition-colors flex items-center justify-center" />
             )}
 
             {/* Habit Name */}
@@ -226,7 +226,7 @@ export const HabitPulse: React.FC = () => {
               <span
                 className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold flex items-center gap-0.5 ${
                   habit.completedToday
-                    ? 'bg-[#00E599]/20 text-[#00E599]'
+                    ? 'bg-[var(--accent-secondary)]/20 text-[var(--accent-secondary)]'
                     : 'bg-white/[0.05] text-[#94A3B8]'
                 }`}
               >
@@ -240,7 +240,7 @@ export const HabitPulse: React.FC = () => {
         {/* + Add Habit Pill Button */}
         <button
           onClick={() => setIsAdding(true)}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-dashed border-white/20 hover:border-[#00E599]/60 text-[#94A3B8] hover:text-[#00E599] text-[11px] font-medium transition-all cursor-pointer flex-shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-dashed border-white/20 hover:border-primary/60 text-[#94A3B8] hover:text-primary text-[11px] font-medium transition-all cursor-pointer flex-shrink-0"
           title="Add a new daily habit"
         >
           <Plus className="w-3 h-3 stroke-[2.5]" />
@@ -383,11 +383,11 @@ export const HabitPulse: React.FC = () => {
       {/* --------------------------------------------------------------------- */}
       {isAdding && (
         <div
-          className="absolute inset-x-0 top-0 bottom-0 z-30 px-5 bg-[#0D1117]/95 backdrop-blur-xl flex items-center justify-between border-b border-[#00E599]/30 animate-in fade-in duration-150"
+          className="absolute inset-x-0 top-0 bottom-0 z-30 px-5 bg-[var(--bg-card)]/95 backdrop-blur-xl flex items-center justify-between border-b border-primary/30 animate-in fade-in duration-150"
           onKeyDown={handleKeyDown}
         >
           <div className="flex items-center gap-2 flex-1 max-w-xl">
-            <span className="text-[11px] font-mono uppercase text-[#00E599] font-bold">
+            <span className="text-[11px] font-mono uppercase text-primary font-bold">
               New Ritual:
             </span>
             <form onSubmit={handleAdd} className="flex-1 flex items-center gap-2">
@@ -397,13 +397,13 @@ export const HabitPulse: React.FC = () => {
                 value={newHabitName}
                 onChange={(e) => setNewHabitName(e.target.value)}
                 placeholder="e.g. Read 20m, Hydrate (2L), Code / Build..."
-                className="flex-1 h-8 px-3 rounded-full bg-[#161B22] border border-white/20 text-[12px] text-white placeholder-slate-500 focus:outline-none focus:border-[#00E599]"
+                className="flex-1 h-8 px-3 rounded-full bg-[var(--bg-inset)] border border-white/20 text-[12px] text-white placeholder-slate-500 focus:outline-none focus:border-primary"
               />
 
               <select
                 value={newHabitCategory}
                 onChange={(e) => setNewHabitCategory(e.target.value as Habit['category'])}
-                className="h-8 px-2 rounded-full bg-[#161B22] border border-white/20 text-[10.5px] font-mono text-slate-300 focus:outline-none"
+                className="h-8 px-2 rounded-full bg-[var(--bg-inset)] border border-white/20 text-[10.5px] font-mono text-slate-300 focus:outline-none"
               >
                 <option value="focus">Focus</option>
                 <option value="mindset">Mindset</option>
@@ -413,7 +413,7 @@ export const HabitPulse: React.FC = () => {
 
               <button
                 type="submit"
-                className="h-8 px-3.5 rounded-full bg-[#00E599] hover:bg-[#4DFFB2] text-black text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer shrink-0"
+                className="h-8 px-3.5 rounded-full bg-primary hover:brightness-110 text-primaryText text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer shrink-0"
               >
                 Save Habit
               </button>

@@ -1,0 +1,116 @@
+/* Dayframe Dynamic CSS Theme Token Infrastructure */
+
+:root,
+[data-theme="midnight-mint"] {
+  --bg-canvas: #0A0D14;
+  --bg-card: #0D1117;
+  --bg-inset: #161B22;
+  --border-card: rgba(255, 255, 255, 0.08);
+  --accent-primary: #00E599;
+  --accent-primary-hover: #4DFFB2;
+  --accent-primary-text: #000000;
+  --accent-secondary: #00E599;
+  --accent-badge: #F59E0B;
+  --accent-audio: #A78BFA;
+  --glow-primary: rgba(0, 229, 153, 0.25);
+  --glow-primary-subtle: rgba(0, 229, 153, 0.12);
+  --theme-gradient: linear-gradient(135deg, #00E599 0%, #A78BFA 100%);
+}
+
+[data-theme="cyber-tokyo"] {
+  --bg-canvas: #000000;
+  --bg-card: #08080C;
+  --bg-inset: #121118;
+  --border-card: rgba(255, 0, 122, 0.20);
+  --accent-primary: #FF007A;
+  --accent-primary-hover: #FF3399;
+  --accent-primary-text: #FFFFFF;
+  --accent-secondary: #00F0FF;
+  --accent-badge: #00F0FF;
+  --accent-audio: #00F0FF;
+  --glow-primary: rgba(255, 0, 122, 0.25);
+  --glow-primary-subtle: rgba(255, 0, 122, 0.12);
+  --theme-gradient: linear-gradient(135deg, #FF007A 0%, #00F0FF 100%);
+}
+
+[data-theme="nordic-frost"] {
+  --bg-canvas: #0F141C;
+  --bg-card: #151D28;
+  --bg-inset: #1C2636;
+  --border-card: rgba(56, 189, 248, 0.18);
+  --accent-primary: #38BDF8;
+  --accent-primary-hover: #7DD3FC;
+  --accent-primary-text: #000000;
+  --accent-secondary: #6EE7B7;
+  --accent-badge: #6EE7B7;
+  --accent-audio: #38BDF8;
+  --glow-primary: rgba(56, 189, 248, 0.20);
+  --glow-primary-subtle: rgba(56, 189, 248, 0.10);
+  --theme-gradient: linear-gradient(135deg, #38BDF8 0%, #6EE7B7 100%);
+}
+
+[data-theme="kyoto-amber"] {
+  --bg-canvas: #14110F;
+  --bg-card: #1C1815;
+  --bg-inset: #25201C;
+  --border-card: rgba(245, 158, 11, 0.18);
+  --accent-primary: #F59E0B;
+  --accent-primary-hover: #FBBF24;
+  --accent-primary-text: #000000;
+  --accent-secondary: #84CC16;
+  --accent-badge: #84CC16;
+  --accent-audio: #F59E0B;
+  --glow-primary: rgba(245, 158, 11, 0.20);
+  --glow-primary-subtle: rgba(245, 158, 11, 0.10);
+  --theme-gradient: linear-gradient(135deg, #F59E0B 0%, #84CC16 100%);
+}
+
+[data-theme="obsidian-sunset"] {
+  --bg-canvas: #0D0A14;
+  --bg-card: #141020;
+  --bg-inset: #1E1830;
+  --border-card: rgba(168, 85, 247, 0.18);
+  --accent-primary: #A855F7;
+  --accent-primary-hover: #C084FC;
+  --accent-primary-text: #FFFFFF;
+  --accent-secondary: #FB7185;
+  --accent-badge: #FB7185;
+  --accent-audio: #FB7185;
+  --glow-primary: rgba(168, 85, 247, 0.20);
+  --glow-primary-subtle: rgba(168, 85, 247, 0.10);
+  --theme-gradient: linear-gradient(135deg, #A855F7 0%, #FB7185 100%);
+}
+
+/* Common utility classes mapped to CSS custom variables */
+.bg-canvas-theme {
+  background-color: var(--bg-canvas);
+}
+
+.bg-card-theme {
+  background-color: var(--bg-card);
+}
+
+.bg-inset-theme {
+  background-color: var(--bg-inset);
+}
+
+.border-card-theme {
+  border-color: var(--border-card);
+}
+
+.text-primary-theme {
+  color: var(--accent-primary);
+}
+
+.bg-primary-theme {
+  background-color: var(--accent-primary);
+  color: var(--accent-primary-text);
+}
+
+.shadow-theme-glow {
+  box-shadow: 0 0 24px -2px var(--glow-primary);
+}
+
+.shadow-theme-btn {
+  box-shadow: 0 0 14px 0 var(--glow-primary);
+}

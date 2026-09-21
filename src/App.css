@@ -1,14 +1,20 @@
 @import "tailwindcss";
+@import "./styles/themes.css";
 
 @theme {
-  --color-brand: #00E599;
-  --color-brand-hover: #4DFFB2;
-  --color-brand-dark: #00472B;
-  --color-canvas: #0A0D14;
-  --color-card: #0D1117;
-  --color-inset: #161B22;
-  --color-amber-accent: #F59E0B;
-  --color-violet-accent: #A78BFA;
+  --color-canvas: var(--bg-canvas);
+  --color-card: var(--bg-card);
+  --color-inset: var(--bg-inset);
+  --color-primary: var(--accent-primary);
+  --color-primary-text: var(--accent-primary-text);
+  --color-secondary: var(--accent-secondary);
+  --color-border-card: var(--border-card);
+
+  --color-brand: var(--accent-primary);
+  --color-brand-hover: var(--accent-primary-hover, var(--accent-primary));
+  --color-brand-dark: var(--bg-card);
+  --color-amber-accent: var(--accent-badge, #F59E0B);
+  --color-violet-accent: var(--accent-audio, #A78BFA);
   --color-slate-muted: #94A3B8;
 }
 
@@ -20,10 +26,11 @@
 
   body {
     font-family: var(--mac-font);
-    background-color: #0A0D14;
+    background-color: var(--bg-canvas);
     color: #DCE2EC;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   .font-mono {
@@ -38,17 +45,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Background dot grid matching Midnight Mint aesthetic */
+/* Background dot grid matching active theme aesthetic */
 .bg-dot-matrix {
-  background-image: radial-gradient(rgba(0, 229, 153, 0.12) 1.2px, transparent 1.2px), radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-image: radial-gradient(var(--glow-primary, rgba(0, 229, 153, 0.12)) 1.2px, transparent 1.2px), radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 32px 32px, 16px 16px;
   background-position: 0 0, 8px 8px;
 }
 
-/* Ambient green radial halos */
+/* Ambient dynamic radial halos */
 .ambient-glow {
-  background: radial-gradient(circle at 15% 15%, rgba(0, 229, 153, 0.14) 0%, transparent 45%),
-              radial-gradient(circle at 85% 85%, rgba(0, 229, 153, 0.08) 0%, transparent 50%),
+  background: radial-gradient(circle at 15% 15%, var(--glow-primary-subtle, rgba(0, 229, 153, 0.14)) 0%, transparent 45%),
+              radial-gradient(circle at 85% 85%, var(--glow-primary-subtle, rgba(0, 229, 153, 0.08)) 0%, transparent 50%),
               radial-gradient(circle at 50% 0%, rgba(167, 139, 250, 0.06) 0%, transparent 40%);
 }
 
@@ -65,7 +72,7 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 229, 153, 0.45);
+  background: var(--accent-primary, #00E599);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -78,15 +85,15 @@
 
 /* Specular Shadows */
 .shadow-window {
-  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.07);
+  box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px var(--border-card, rgba(255, 255, 255, 0.07));
 }
 
 .shadow-mint-glow {
-  box-shadow: 0 0 20px -2px rgba(0, 229, 153, 0.35);
+  box-shadow: 0 0 20px -2px var(--glow-primary, rgba(0, 229, 153, 0.35));
 }
 
 .shadow-mint-btn {
-  box-shadow: 0 0 14px 0 rgba(0, 229, 153, 0.4);
+  box-shadow: 0 0 14px 0 var(--glow-primary, rgba(0, 229, 153, 0.4));
 }
 
 .shadow-card {
