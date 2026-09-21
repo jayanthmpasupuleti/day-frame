@@ -25,14 +25,14 @@ export const App: React.FC = () => {
   });
 
   const activeTheme = useDayframeStore((s) => s.activeTheme);
+  const previewTheme = useDayframeStore((s) => s.previewTheme);
 
   // Guarantee data-theme attribute is applied to root element
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      const preview = useDayframeStore.getState().previewTheme;
-      document.documentElement.setAttribute('data-theme', preview || activeTheme);
+      document.documentElement.setAttribute('data-theme', previewTheme || activeTheme);
     }
-  }, [activeTheme]);
+  }, [activeTheme, previewTheme]);
 
   useEffect(() => {
     if (!isPopover && typeof window !== 'undefined') {

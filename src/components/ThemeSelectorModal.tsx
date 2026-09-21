@@ -334,7 +334,7 @@ export const ThemeSelectorModal: React.FC = () => {
                               e.stopPropagation();
                               setTheme(theme.id);
                             }}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/10 hover:bg-primary hover:text-black text-white transition-all cursor-pointer active:scale-95"
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold bg-white/10 hover:bg-primary hover:text-primaryText text-white transition-all cursor-pointer active:scale-95"
                           >
                             <span>Select</span>
                             <ArrowRight className="w-3 h-3" />

@@ -89,7 +89,7 @@ export const TrayPopover: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-[360px] h-[460px] bg-[#0A0D14]/98 text-[#DCE2EC] border border-white/[0.09] shadow-2xl backdrop-blur-2xl flex flex-col justify-between p-3.5 select-none overflow-hidden font-sans rounded-2xl">
+    <div className="w-[360px] h-[460px] bg-[var(--bg-canvas)]/98 text-[#DCE2EC] border border-[var(--border-card)] shadow-2xl backdrop-blur-2xl flex flex-col justify-between p-3.5 select-none overflow-hidden font-sans rounded-2xl">
       {/* 1. Header: Brand, Close dot & Expand to Dashboard */}
       <header className="flex items-center justify-between pb-2 border-b border-white/[0.07]">
         <div className="flex items-center gap-2">
@@ -101,8 +101,8 @@ export const TrayPopover: React.FC = () => {
             <X className="w-2 h-2 text-black/60 opacity-0 group-hover:opacity-100 transition-opacity stroke-[3]" />
           </button>
           <span className="relative flex h-2 w-2 ml-1">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00E599] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00E599] shadow-[0_0_6px_#00E599]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary shadow-[0_0_6px_var(--glow-primary)]" />
           </span>
           <span className="font-semibold text-xs tracking-tight text-white">
             Dayframe Mini
@@ -115,12 +115,12 @@ export const TrayPopover: React.FC = () => {
           title="Open Full Dashboard"
         >
           <span>Dashboard</span>
-          <Maximize2 className="w-3 h-3 text-[#00E599]" />
+          <Maximize2 className="w-3 h-3 text-primary" />
         </button>
       </header>
 
       {/* 2. Circular Pomodoro Ring & Controls */}
-      <div className="flex items-center justify-between px-2 py-2 bg-[#0D1117] rounded-xl border border-white/[0.06]">
+      <div className="flex items-center justify-between px-2 py-2 bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)]">
         {/* Left: SVG Progress Ring with countdown */}
         <div className="relative flex items-center justify-center w-[92px] h-[92px]">
           <svg className="w-[92px] h-[92px] -rotate-90" viewBox="0 0 92 92">
@@ -128,7 +128,7 @@ export const TrayPopover: React.FC = () => {
               cx="46"
               cy="46"
               r={radius}
-              className="stroke-[#161B22]"
+              className="stroke-[var(--bg-inset)]"
               strokeWidth="5.5"
               fill="transparent"
             />
@@ -137,7 +137,7 @@ export const TrayPopover: React.FC = () => {
               cy="46"
               r={radius}
               className={`transition-all duration-300 ${
-                pomodoro.mode === 'focus' ? 'stroke-[#00E599]' : 'stroke-[#F59E0B]'
+                pomodoro.mode === 'focus' ? 'stroke-[var(--accent-primary)]' : 'stroke-[#F59E0B]'
               }`}
               strokeWidth="5.5"
               strokeDasharray={circumference}
@@ -152,7 +152,7 @@ export const TrayPopover: React.FC = () => {
             </span>
             <span
               className={`text-[8.5px] font-bold uppercase tracking-wider ${
-                pomodoro.mode === 'focus' ? 'text-[#00E599]' : 'text-[#F59E0B]'
+                pomodoro.mode === 'focus' ? 'text-primary' : 'text-[#F59E0B]'
               }`}
             >
               {isUntimed ? 'UNTIMED' : pomodoro.mode === 'focus' ? 'FOCUS' : 'BREAK'}
@@ -182,7 +182,7 @@ export const TrayPopover: React.FC = () => {
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer active:scale-95 ${
                 pomodoro.isRunning
                   ? 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/40 hover:bg-[#F59E0B]/30'
-                  : 'bg-[#00E599] text-black hover:bg-[#4DFFB2] shadow-mint-btn'
+                  : 'bg-primary text-primaryText hover:brightness-110 shadow-mint-btn'
               }`}
             >
               {pomodoro.isRunning ? (
@@ -200,7 +200,7 @@ export const TrayPopover: React.FC = () => {
 
             <button
               onClick={handleResetTimer}
-              className="w-8 h-8 rounded-lg bg-[#161B22] border border-white/[0.07] text-slate-400 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-lg bg-[var(--bg-inset)] border border-[var(--border-card)] text-slate-400 hover:text-white hover:bg-white/[0.08] flex items-center justify-center transition-colors cursor-pointer"
               title="Reset Timer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -210,14 +210,14 @@ export const TrayPopover: React.FC = () => {
       </div>
 
       {/* 3. In-Focus Task Slot */}
-      <div className="p-2.5 bg-[#0D1117] rounded-xl border border-white/[0.06] relative">
+      <div className="p-2.5 bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)] relative">
         <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
           <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00E599]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
             <span>Active Focus Task</span>
           </span>
           {activeFocusTask?.tag && (
-            <span className="px-1.5 py-0.2 rounded-full bg-[#38BDF8]/15 text-[#38BDF8] border border-[#38BDF8]/30 font-mono text-[9px]">
+            <span className="px-1.5 py-0.2 rounded-full bg-[var(--accent-secondary)]/15 text-[var(--accent-secondary)] border border-[var(--accent-secondary)]/30 font-mono text-[9px]">
               {activeFocusTask.tag}
             </span>
           )}
@@ -241,7 +241,7 @@ export const TrayPopover: React.FC = () => {
 
             <button
               onClick={() => handleCompleteHeroTask(activeFocusTask.id)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#00E599]/15 text-[#00E599] border border-[#00E599]/30 hover:bg-[#00E599] hover:text-black font-semibold text-[11px] transition-all cursor-pointer active:scale-95 shrink-0"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/15 text-primary border border-primary/30 hover:bg-primary hover:text-primaryText font-semibold text-[11px] transition-all cursor-pointer active:scale-95 shrink-0"
               title="Mark Task Completed"
             >
               <Check className="w-3 h-3 stroke-[2.5]" />
@@ -252,7 +252,7 @@ export const TrayPopover: React.FC = () => {
           <div className="relative">
             <button
               onClick={() => setShowPicker(!showPicker)}
-              className="w-full py-1 px-2 rounded-lg bg-[#161B22] border border-white/[0.08] hover:border-white/20 text-slate-300 text-xs flex items-center justify-between transition-colors cursor-pointer"
+              className="w-full py-1 px-2 rounded-lg bg-[var(--bg-inset)] border border-[var(--border-card)] hover:border-white/20 text-slate-300 text-xs flex items-center justify-between transition-colors cursor-pointer"
             >
               <span className="text-slate-400 truncate">
                 {backlogTasks.length > 0 ? 'Pick task from backlog...' : 'No backlog tasks'}
@@ -261,7 +261,7 @@ export const TrayPopover: React.FC = () => {
             </button>
 
             {showPicker && backlogTasks.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-[#161B22] border border-white/[0.12] rounded-lg shadow-xl max-h-28 overflow-y-auto z-50 p-1">
+              <div className="absolute left-0 right-0 top-full mt-1 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg shadow-xl max-h-28 overflow-y-auto z-50 p-1">
                 {backlogTasks.map((task) => (
                   <button
                     key={task.id}
@@ -284,10 +284,10 @@ export const TrayPopover: React.FC = () => {
       </div>
 
       {/* 4. Quick Habits Checklist */}
-      <div className="p-2.5 bg-[#0D1117] rounded-xl border border-white/[0.06] flex-1 flex flex-col justify-between my-1.5 overflow-hidden">
+      <div className="p-2.5 bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)] flex-1 flex flex-col justify-between my-1.5 overflow-hidden">
         <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
           <span>Habits • {completedHabitsCount} of {habits.length}</span>
-          <span className="text-[#00E599] font-mono text-[10px]">
+          <span className="text-[var(--accent-secondary)] font-mono text-[10px] font-bold">
             {habits.length > 0 ? Math.round((completedHabitsCount / habits.length) * 100) : 0}%
           </span>
         </div>
@@ -303,7 +303,7 @@ export const TrayPopover: React.FC = () => {
                 <div
                   className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${
                     habit.completedToday
-                      ? 'bg-[#00E599] border-[#00E599] text-black'
+                      ? 'bg-[var(--accent-secondary)] border-[var(--accent-secondary)] text-[var(--accent-primary-text)]'
                       : 'border-white/20 bg-white/[0.03] group-hover:border-white/40'
                   }`}
                 >
@@ -330,9 +330,9 @@ export const TrayPopover: React.FC = () => {
       </div>
 
       {/* 5. Mini Ambient Audio Bar */}
-      <footer className="flex items-center justify-between px-2.5 py-1.5 bg-[#0D1117] rounded-xl border border-white/[0.06] text-slate-300">
+      <footer className="flex items-center justify-between px-2.5 py-1.5 bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)] text-slate-300">
         <div className="flex items-center gap-2 min-w-0">
-          <Headphones className="w-3.5 h-3.5 text-[#A78BFA] shrink-0" />
+          <Headphones className="w-3.5 h-3.5 text-[var(--accent-audio)] shrink-0" />
           <span className="text-[11px] font-medium truncate max-w-[170px] text-slate-200">
             {activeTrack?.title || 'Ambient Focus Audio'}
           </span>
@@ -355,7 +355,7 @@ export const TrayPopover: React.FC = () => {
             onClick={handleToggleAudio}
             className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
               audio.isPlayingAudio
-                ? 'bg-[#A78BFA]/20 text-[#A78BFA] border border-[#A78BFA]/40'
+                ? 'bg-[var(--accent-audio)]/20 text-[var(--accent-audio)] border border-[var(--accent-audio)]/40'
                 : 'bg-white/10 text-slate-300 hover:text-white hover:bg-white/20'
             }`}
           >

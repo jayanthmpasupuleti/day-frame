@@ -19,7 +19,7 @@ import type { Habit } from '../types';
 const getCategoryIcon = (category?: Habit['category']) => {
   switch (category) {
     case 'focus':
-      return <Target className="w-3.5 h-3.5 text-[#00E599]" />;
+      return <Target className="w-3.5 h-3.5 text-[var(--accent-secondary)]" />;
     case 'mindset':
       return <BookOpen className="w-3.5 h-3.5 text-[#A78BFA]" />;
     case 'health':
@@ -27,7 +27,7 @@ const getCategoryIcon = (category?: Habit['category']) => {
     case 'routine':
       return <Coffee className="w-3.5 h-3.5 text-[#F59E0B]" />;
     default:
-      return <Zap className="w-3.5 h-3.5 text-[#00E599]" />;
+      return <Zap className="w-3.5 h-3.5 text-[var(--accent-secondary)]" />;
   }
 };
 
@@ -258,10 +258,10 @@ export const HabitPulse: React.FC = () => {
             : 'max-h-0 opacity-0 mt-0 pt-0 pointer-events-none'
         }`}
       >
-        <div className="p-3.5 rounded-xl bg-[#0D1117] border border-white/[0.07] shadow-card">
+        <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] shadow-card">
           <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/[0.05]">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#00E599]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-secondary)] shadow-[0_0_6px_var(--glow-primary)]" />
               <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
                 Consistency Heatmap (Trailing 8 Weeks)
               </h3>
@@ -279,7 +279,7 @@ export const HabitPulse: React.FC = () => {
               return (
                 <div
                   key={habit.id}
-                  className="p-3 rounded-xl bg-[#161B22]/70 border border-white/[0.05] hover:border-white/[0.12] transition-all flex items-center justify-between gap-3 shadow-xs"
+                  className="p-3 rounded-xl bg-[var(--bg-inset)]/70 border border-[var(--border-card)] hover:border-white/[0.15] transition-all flex items-center justify-between gap-3 shadow-xs"
                 >
                   {/* Left: Habit Meta Info */}
                   <div className="min-w-[130px] flex-1">
@@ -298,7 +298,7 @@ export const HabitPulse: React.FC = () => {
                         <span className="tabular-nums">{habit.streak}d</span>
                       </span>
                       <span className="text-slate-400">
-                        <span className="text-[#00E599] font-bold tabular-nums">{rate30d}%</span>{' '}
+                        <span className="text-[var(--accent-secondary)] font-bold tabular-nums">{rate30d}%</span>{' '}
                         <span className="text-[9.5px] text-slate-500">30d</span>
                       </span>
                     </div>
@@ -343,12 +343,12 @@ export const HabitPulse: React.FC = () => {
                                   key={dIdx}
                                   className={`w-[10px] h-[10px] rounded-[2px] transition-all cursor-pointer ${
                                     isFuture
-                                      ? 'bg-[#161B22]/40 border border-white/[0.02] cursor-default'
+                                      ? 'bg-[var(--bg-inset)]/40 border border-white/[0.02] cursor-default'
                                       : isDone
                                       ? isHighTier
-                                        ? 'bg-[#6DFFBA] shadow-[0_0_4px_rgba(109,255,186,0.6)] hover:brightness-125 hover:scale-125'
-                                        : 'bg-[#00E599] shadow-[0_0_4px_rgba(0,229,153,0.4)] hover:brightness-125 hover:scale-125'
-                                      : 'bg-[#161B22] border border-white/[0.04] hover:border-white/20 hover:scale-110'
+                                        ? 'bg-[var(--accent-secondary)] brightness-110 shadow-[0_0_6px_var(--glow-primary)] hover:brightness-125 hover:scale-125'
+                                        : 'bg-[var(--accent-secondary)]/85 shadow-[0_0_4px_var(--glow-primary)] hover:brightness-125 hover:scale-125'
+                                      : 'bg-[var(--bg-canvas)] border border-white/[0.04] hover:border-white/20 hover:scale-110'
                                   }`}
                                   title={`${dateFormatted} • ${statusText}`}
                                 />
@@ -362,11 +362,11 @@ export const HabitPulse: React.FC = () => {
                     {/* Compact Cell Legend */}
                     <div className="flex items-center gap-2 mt-1.5 text-[8.5px] font-mono text-slate-500">
                       <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-[1px] bg-[#161B22] border border-white/[0.06]" />
+                        <span className="w-1.5 h-1.5 rounded-[1px] bg-[var(--bg-canvas)] border border-white/[0.06]" />
                         <span>Missed</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-[1px] bg-[#00E599]" />
+                        <span className="w-1.5 h-1.5 rounded-[1px] bg-[var(--accent-secondary)] shadow-[0_0_4px_var(--glow-primary)]" />
                         <span>Done</span>
                       </div>
                     </div>

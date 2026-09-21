@@ -37,7 +37,7 @@ const getTagBadgeStyle = (tag: string) => {
   if (clean.includes('personal') || clean.includes('routine') || clean.includes('errand')) {
     return 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20';
   }
-  return 'bg-[#00E599]/10 text-[#00E599] border-[#00E599]/20';
+  return 'bg-[var(--accent-secondary)]/10 text-[var(--accent-secondary)] border-[var(--accent-secondary)]/20';
 };
 
 export const AgileBoard: React.FC = () => {
@@ -472,7 +472,7 @@ export const AgileBoard: React.FC = () => {
                         className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] border transition-all cursor-pointer ${
                           isTaskUntimed
                             ? 'bg-[#A78BFA]/10 hover:bg-[#A78BFA]/20 border-[#A78BFA]/30 text-[#A78BFA]'
-                            : 'bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.08] text-slate-300 hover:text-[#00E599]'
+                            : 'bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.08] text-slate-300 hover:text-primary'
                         }`}
                         title="Click to adjust duration or make untimed"
                       >
@@ -483,7 +483,7 @@ export const AgileBoard: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <Timer className="w-2.5 h-2.5 text-[#00E599]" />
+                            <Timer className="w-2.5 h-2.5 text-primary" />
                             <span>{taskDurationMin}m</span>
                           </>
                         )}
@@ -492,7 +492,7 @@ export const AgileBoard: React.FC = () => {
                       {/* Duration Quick Selector Popover */}
                       {isEditingDuration && (
                         <div
-                          className="absolute left-0 bottom-6 z-40 p-1.5 rounded-xl bg-[#0D1117] border border-white/20 shadow-2xl flex items-center gap-1 animate-in fade-in zoom-in-95"
+                          className="absolute left-0 bottom-6 z-40 p-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] shadow-2xl flex items-center gap-1 animate-in fade-in zoom-in-95"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {DURATION_OPTIONS.map((d) => (
@@ -505,7 +505,7 @@ export const AgileBoard: React.FC = () => {
                               }}
                               className={`px-2 py-1 rounded-lg text-[10px] font-mono font-semibold transition-colors cursor-pointer ${
                                 taskDurationMin === d
-                                  ? 'bg-[#00E599] text-black font-bold'
+                                  ? 'bg-primary text-primaryText font-bold'
                                   : 'text-slate-300 hover:bg-white/10 hover:text-white'
                               }`}
                             >

@@ -10,6 +10,9 @@ type SyncMessage =
         tasks: ReturnType<typeof useDayframeStore.getState>['tasks'];
         pomodoro: ReturnType<typeof useDayframeStore.getState>['pomodoro'];
         audio: ReturnType<typeof useDayframeStore.getState>['audio'];
+        activeTheme?: ReturnType<typeof useDayframeStore.getState>['activeTheme'];
+        previewTheme?: ReturnType<typeof useDayframeStore.getState>['previewTheme'];
+        isProUnlocked?: boolean;
       };
     }
   | {
@@ -50,6 +53,9 @@ export const useCrossWindowSync = (isPopover: boolean) => {
               tasks: state.tasks,
               pomodoro: state.pomodoro,
               audio: state.audio,
+              activeTheme: state.activeTheme,
+              previewTheme: state.previewTheme,
+              isProUnlocked: state.isProUnlocked,
             },
           });
         }
@@ -59,7 +65,16 @@ export const useCrossWindowSync = (isPopover: boolean) => {
           tasks: msg.payload.tasks,
           pomodoro: msg.payload.pomodoro,
           audio: msg.payload.audio,
+          ...(msg.payload.activeTheme ? { activeTheme: msg.payload.activeTheme } : {}),
+          ...(msg.payload.previewTheme !== undefined ? { previewTheme: msg.payload.previewTheme } : {}),
+          ...(msg.payload.isProUnlocked !== undefined ? { isProUnlocked: msg.payload.isProUnlocked } : {}),
         });
+        if (typeof document !== 'undefined' && (msg.payload.activeTheme || msg.payload.previewTheme)) {
+          document.documentElement.setAttribute(
+            'data-theme',
+            msg.payload.previewTheme || msg.payload.activeTheme || 'midnight-mint'
+          );
+        }
       } else if (msg.type === 'TIMER_TICK') {
         if (isPopover) {
           useDayframeStore.setState({ pomodoro: msg.payload });
@@ -77,6 +92,9 @@ export const useCrossWindowSync = (isPopover: boolean) => {
               tasks: updated.tasks,
               pomodoro: updated.pomodoro,
               audio: updated.audio,
+              activeTheme: updated.activeTheme,
+              previewTheme: updated.previewTheme,
+              isProUnlocked: updated.isProUnlocked,
             },
           });
         }
@@ -104,6 +122,27 @@ export const useCrossWindowSync = (isPopover: boolean) => {
       });
     }
   }, [pomodoro, isPopover]);
+
+  // If in main window, broadcast theme changes to popover
+  const activeTheme = useDayframeStore((state) => state.activeTheme);
+  const previewTheme = useDayframeStore((state) => state.previewTheme);
+  useEffect(() => {
+    if (!isPopover && channelRef.current) {
+      const state = useDayframeStore.getState();
+      channelRef.current.postMessage({
+        type: 'FULL_STORE_SYNC',
+        payload: {
+          habits: state.habits,
+          tasks: state.tasks,
+          pomodoro: state.pomodoro,
+          audio: state.audio,
+          activeTheme: state.activeTheme,
+          previewTheme: state.previewTheme,
+          isProUnlocked: state.isProUnlocked,
+        },
+      });
+    }
+  }, [activeTheme, previewTheme, isPopover]);
 
   const dispatchAction = (action: string, ...args: any[]) => {
     // Run locally

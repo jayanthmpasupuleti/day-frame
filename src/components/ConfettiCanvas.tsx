@@ -22,7 +22,7 @@ interface Particle {
   wobbleSpeed: number;
 }
 
-const PALETTE = [
+const DEFAULT_PALETTE = [
   '#00E599', // Neon Mint
   '#4DFFB2', // Bright Mint
   '#A78BFA', // Cyber Violet
@@ -32,6 +32,31 @@ const PALETTE = [
   '#F43F5E', // Coral Pink
   '#FFFFFF', // White Sparkle
 ];
+
+const getThemePalette = (): string[] => {
+  if (typeof window === 'undefined') return DEFAULT_PALETTE;
+  try {
+    const computed = getComputedStyle(document.documentElement);
+    const primary = computed.getPropertyValue('--accent-primary').trim();
+    const secondary = computed.getPropertyValue('--accent-secondary').trim();
+    const primaryHover = computed.getPropertyValue('--accent-primary-hover').trim();
+    const audio = computed.getPropertyValue('--accent-audio').trim();
+
+    if (primary && secondary) {
+      return [
+        primary,
+        primary,
+        secondary,
+        secondary,
+        primaryHover || primary,
+        audio || '#A78BFA',
+        '#FFFFFF',
+        '#FBBF24',
+      ];
+    }
+  } catch {}
+  return DEFAULT_PALETTE;
+};
 
 const SHAPES: Array<'rect' | 'circle' | 'star' | 'ribbon'> = ['rect', 'rect', 'circle', 'star', 'ribbon'];
 
@@ -59,11 +84,12 @@ export const ConfettiCanvas = forwardRef<ConfettiRef, { triggerCount?: number }>
         const particles: Particle[] = [];
         const radAngle = (angleDeg * Math.PI) / 180;
         const radSpread = (spreadDeg * Math.PI) / 180;
+        const palette = getThemePalette();
 
         for (let i = 0; i < count; i++) {
           const pAngle = radAngle + (Math.random() - 0.5) * radSpread;
           const speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
-          const color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+          const color = palette[Math.floor(Math.random() * palette.length)];
           const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
 
           particles.push({
