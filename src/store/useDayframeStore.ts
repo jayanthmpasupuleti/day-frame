@@ -19,11 +19,16 @@ export type { ThemeId };
 export interface DayframeStore {
   // Theme Engine & Pro State
   activeTheme: ThemeId;
+  unlockedThemeIds: ThemeId[];
   isProUnlocked: boolean;
   isThemeModalOpen: boolean;
-  previewTheme: ThemeId | null;
+  previewThemeId: ThemeId | null;
   previewSecondsRemaining: number;
   setTheme: (theme: ThemeId) => void;
+  previewTheme: (theme: ThemeId) => void;
+  previewThemeAction: (theme: ThemeId) => void;
+  revertPreview: () => void;
+  unlockSageChakra: () => void;
   unlockProMock: () => void;
   openThemeModal: () => void;
   closeThemeModal: () => void;
@@ -718,9 +723,10 @@ export const useDayframeStore = create<DayframeStore>()(
 
       // --- THEME ENGINE & PRO STATE ---
       activeTheme: 'midnight-mint',
+      unlockedThemeIds: ['midnight-mint'],
       isProUnlocked: false,
       isThemeModalOpen: false,
-      previewTheme: null,
+      previewThemeId: null,
       previewSecondsRemaining: 0,
 
       setTheme: (theme: ThemeId) => {
@@ -731,7 +737,75 @@ export const useDayframeStore = create<DayframeStore>()(
         applyDomTheme(theme);
         set({
           activeTheme: theme,
-          previewTheme: null,
+          previewThemeId: null,
+          previewSecondsRemaining: 0,
+        });
+      },
+
+      previewTheme: (theme: ThemeId) => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        applyDomTheme(theme);
+        set({
+          previewThemeId: theme,
+          previewSecondsRemaining: 15,
+        });
+
+        previewTimer = setInterval(() => {
+          const currentRemaining = get().previewSecondsRemaining;
+          if (currentRemaining <= 1) {
+            clearInterval(previewTimer);
+            previewTimer = null;
+            applyDomTheme(get().activeTheme);
+            set({
+              previewThemeId: null,
+              previewSecondsRemaining: 0,
+            });
+          } else {
+            set({ previewSecondsRemaining: currentRemaining - 1 });
+          }
+        }, 1000);
+      },
+
+      previewThemeAction: (theme: ThemeId) => {
+        get().previewTheme(theme);
+      },
+
+      startPreviewTheme: (theme: ThemeId) => {
+        get().previewTheme(theme);
+      },
+
+      revertPreview: () => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        applyDomTheme(get().activeTheme);
+        set({
+          previewThemeId: null,
+          previewSecondsRemaining: 0,
+        });
+      },
+
+      cancelPreviewTheme: () => {
+        get().revertPreview();
+      },
+
+      unlockSageChakra: () => {
+        if (previewTimer) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+        }
+        const state = get();
+        const updatedUnlocked = Array.from(new Set([...state.unlockedThemeIds, 'sage-chakra' as ThemeId]));
+        applyDomTheme('sage-chakra');
+        set({
+          unlockedThemeIds: updatedUnlocked,
+          activeTheme: 'sage-chakra',
+          isProUnlocked: true,
+          previewThemeId: null,
           previewSecondsRemaining: 0,
         });
       },
@@ -742,12 +816,21 @@ export const useDayframeStore = create<DayframeStore>()(
           previewTimer = null;
         }
         const state = get();
-        const permanentTheme = state.previewTheme || state.activeTheme;
+        const permanentTheme = state.previewThemeId || state.activeTheme;
+        const allThemes: ThemeId[] = [
+          'midnight-mint',
+          'sage-chakra',
+          'cyber-tokyo',
+          'nordic-frost',
+          'kyoto-amber',
+          'obsidian-sunset',
+        ];
         applyDomTheme(permanentTheme);
         set({
           isProUnlocked: true,
+          unlockedThemeIds: allThemes,
           activeTheme: permanentTheme,
-          previewTheme: null,
+          previewThemeId: null,
           previewSecondsRemaining: 0,
         });
       },
@@ -756,7 +839,8 @@ export const useDayframeStore = create<DayframeStore>()(
 
       closeThemeModal: () => {
         const state = get();
-        if (state.previewTheme && !state.isProUnlocked) {
+        const activePreview = state.previewThemeId;
+        if (activePreview && !state.unlockedThemeIds.includes(activePreview)) {
           if (previewTimer) {
             clearInterval(previewTimer);
             previewTimer = null;
@@ -764,51 +848,12 @@ export const useDayframeStore = create<DayframeStore>()(
           applyDomTheme(state.activeTheme);
           set({
             isThemeModalOpen: false,
-            previewTheme: null,
+            previewThemeId: null,
             previewSecondsRemaining: 0,
           });
         } else {
           set({ isThemeModalOpen: false });
         }
-      },
-
-      startPreviewTheme: (theme: ThemeId) => {
-        if (previewTimer) {
-          clearInterval(previewTimer);
-          previewTimer = null;
-        }
-        applyDomTheme(theme);
-        set({
-          previewTheme: theme,
-          previewSecondsRemaining: 10,
-        });
-
-        previewTimer = setInterval(() => {
-          const currentRemaining = get().previewSecondsRemaining;
-          if (currentRemaining <= 1) {
-            clearInterval(previewTimer);
-            previewTimer = null;
-            applyDomTheme(get().activeTheme);
-            set({
-              previewTheme: null,
-              previewSecondsRemaining: 0,
-            });
-          } else {
-            set({ previewSecondsRemaining: currentRemaining - 1 });
-          }
-        }, 1000);
-      },
-
-      cancelPreviewTheme: () => {
-        if (previewTimer) {
-          clearInterval(previewTimer);
-          previewTimer = null;
-        }
-        applyDomTheme(get().activeTheme);
-        set({
-          previewTheme: null,
-          previewSecondsRemaining: 0,
-        });
       },
     }),
     {
@@ -833,11 +878,15 @@ export const useDayframeStore = create<DayframeStore>()(
         },
         sync: state.sync,
         activeTheme: state.activeTheme,
+        unlockedThemeIds: state.unlockedThemeIds,
         isProUnlocked: state.isProUnlocked,
       }),
       onRehydrateStorage: () => (state) => {
         if (state?.activeTheme) {
           applyDomTheme(state.activeTheme);
+        }
+        if (state?.isProUnlocked && state?.unlockedThemeIds && !state.unlockedThemeIds.includes('sage-chakra')) {
+          state.unlockedThemeIds.push('sage-chakra');
         }
         if (state?.audio?.audioTracks) {
           state.audio.audioTracks = state.audio.audioTracks.map((track) =>

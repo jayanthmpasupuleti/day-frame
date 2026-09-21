@@ -5,7 +5,7 @@ import { AgileBoard } from './components/AgileBoard';
 import { BottomDock } from './components/BottomDock';
 import { AudioEngine } from './components/AudioEngine';
 import { TrayPopover } from './components/TrayPopover';
-import { ThemeSelectorModal } from './components/ThemeSelectorModal';
+import { ThemeModal } from './components/ThemeModal';
 import { useTimerEngine } from './hooks/useTimerEngine';
 import { useCrossWindowSync } from './hooks/useCrossWindowSync';
 import { useTraySync } from './hooks/useTraySync';
@@ -25,14 +25,14 @@ export const App: React.FC = () => {
   });
 
   const activeTheme = useDayframeStore((s) => s.activeTheme);
-  const previewTheme = useDayframeStore((s) => s.previewTheme);
+  const previewThemeId = useDayframeStore((s) => s.previewThemeId);
 
   // Guarantee data-theme attribute is applied to root element
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', previewTheme || activeTheme);
+      document.documentElement.setAttribute('data-theme', previewThemeId || activeTheme);
     }
-  }, [activeTheme, previewTheme]);
+  }, [activeTheme, previewThemeId]);
 
   useEffect(() => {
     if (!isPopover && typeof window !== 'undefined') {
@@ -85,8 +85,8 @@ export const App: React.FC = () => {
         {/* Bottom Utility Dock: YouTube Ambient Audio & Timer Controls */}
         <BottomDock />
 
-        {/* Studio Theme Switcher & Pro Preview Modal */}
-        <ThemeSelectorModal />
+        {/* Theme Switcher & Legendary Preview Modal */}
+        <ThemeModal />
       </div>
     </div>
   );

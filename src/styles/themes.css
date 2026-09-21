@@ -81,6 +81,48 @@
   --theme-gradient: linear-gradient(135deg, #A855F7 0%, #FB7185 100%);
 }
 
+[data-theme="sage-chakra"] {
+  --bg-canvas: #0B0E11;
+  --bg-card: #12171E;
+  --bg-inset: #18202A;
+  --border-card: rgba(234, 179, 8, 0.18);
+  --border-card-hover: rgba(234, 179, 8, 0.35);
+  --accent-primary: #FF6B00;
+  --accent-primary-hover: #FF8533;
+  --accent-primary-text: #0A0D14;
+  --accent-secondary: #22C55E;
+  --accent-badge: #22C55E;
+  --accent-audio: #00E5FF;
+  --glow-primary: rgba(255, 107, 0, 0.30);
+  --glow-primary-subtle: rgba(255, 107, 0, 0.12);
+  --theme-gradient: linear-gradient(135deg, #FF6B00 0%, #22C55E 100%);
+}
+
+/* Global smooth transition on root theme switch */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Fiery Nine-Tails Chakra Flame Aura */
+@keyframes chakra-flame {
+  0% {
+    box-shadow: 0 0 20px -2px rgba(255, 107, 0, 0.5), 0 0 45px 0 rgba(255, 85, 0, 0.35), inset 0 0 15px rgba(255, 107, 0, 0.15);
+    border-color: rgba(255, 107, 0, 0.65);
+  }
+  50% {
+    box-shadow: 0 0 32px 2px rgba(255, 130, 0, 0.75), 0 0 65px 6px rgba(255, 60, 0, 0.5), inset 0 0 22px rgba(255, 107, 0, 0.25);
+    border-color: rgba(255, 140, 0, 0.9);
+  }
+  100% {
+    box-shadow: 0 0 20px -2px rgba(255, 107, 0, 0.5), 0 0 45px 0 rgba(255, 85, 0, 0.35), inset 0 0 15px rgba(255, 107, 0, 0.15);
+    border-color: rgba(255, 107, 0, 0.65);
+  }
+}
+
+.chakra-flame-aura {
+  animation: chakra-flame 3.5s ease-in-out infinite;
+}
+
 /* Common utility classes mapped to CSS custom variables */
 .bg-canvas-theme {
   background-color: var(--bg-canvas);

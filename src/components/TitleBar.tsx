@@ -7,6 +7,7 @@ import {
   VolumeX,
   Headphones,
   Palette,
+  Flame,
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 
@@ -20,6 +21,8 @@ export const TitleBar: React.FC = () => {
     toggleAudioPlaying,
     openThemeModal,
     isProUnlocked,
+    activeTheme,
+    previewThemeId,
   } = useDayframeStore();
 
   const minutes = Math.floor(pomodoro.timeLeft / 60);
@@ -83,8 +86,14 @@ export const TitleBar: React.FC = () => {
             Dayframe
           </span>
           <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/[0.05] border border-white/[0.07] text-[#94A3B8] hidden sm:inline shrink-0">
-            v2.0
+            v5.0
           </span>
+          {((previewThemeId || activeTheme) === 'sage-chakra') && (
+            <span className="text-[9.5px] font-mono px-2 py-0.2 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-1 shrink-0 font-bold shadow-xs animate-in fade-in">
+              <Flame className="w-2.5 h-2.5 text-[#FF6B00] fill-[#FF6B00]" />
+              <span>Legendary Tier</span>
+            </span>
+          )}
         </div>
       </div>
 

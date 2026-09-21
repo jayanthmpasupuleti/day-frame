@@ -60,6 +60,7 @@ export interface SyncState {
 
 export type ThemeId =
   | 'midnight-mint'
+  | 'sage-chakra'
   | 'cyber-tokyo'
   | 'nordic-frost'
   | 'kyoto-amber'
@@ -70,6 +71,8 @@ export interface ThemeDefinition {
   name: string;
   tagline: string;
   isPro: boolean;
+  isLegendary?: boolean;
+  price?: string;
   colors: {
     canvas: string;
     card: string;

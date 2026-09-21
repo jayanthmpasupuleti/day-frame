@@ -11,7 +11,8 @@ type SyncMessage =
         pomodoro: ReturnType<typeof useDayframeStore.getState>['pomodoro'];
         audio: ReturnType<typeof useDayframeStore.getState>['audio'];
         activeTheme?: ReturnType<typeof useDayframeStore.getState>['activeTheme'];
-        previewTheme?: ReturnType<typeof useDayframeStore.getState>['previewTheme'];
+        unlockedThemeIds?: ReturnType<typeof useDayframeStore.getState>['unlockedThemeIds'];
+        previewThemeId?: ReturnType<typeof useDayframeStore.getState>['previewThemeId'];
         isProUnlocked?: boolean;
       };
     }
@@ -54,7 +55,8 @@ export const useCrossWindowSync = (isPopover: boolean) => {
               pomodoro: state.pomodoro,
               audio: state.audio,
               activeTheme: state.activeTheme,
-              previewTheme: state.previewTheme,
+              unlockedThemeIds: state.unlockedThemeIds,
+              previewThemeId: state.previewThemeId,
               isProUnlocked: state.isProUnlocked,
             },
           });
@@ -66,13 +68,14 @@ export const useCrossWindowSync = (isPopover: boolean) => {
           pomodoro: msg.payload.pomodoro,
           audio: msg.payload.audio,
           ...(msg.payload.activeTheme ? { activeTheme: msg.payload.activeTheme } : {}),
-          ...(msg.payload.previewTheme !== undefined ? { previewTheme: msg.payload.previewTheme } : {}),
+          ...(msg.payload.unlockedThemeIds ? { unlockedThemeIds: msg.payload.unlockedThemeIds } : {}),
+          ...(msg.payload.previewThemeId !== undefined ? { previewThemeId: msg.payload.previewThemeId } : {}),
           ...(msg.payload.isProUnlocked !== undefined ? { isProUnlocked: msg.payload.isProUnlocked } : {}),
         });
-        if (typeof document !== 'undefined' && (msg.payload.activeTheme || msg.payload.previewTheme)) {
+        if (typeof document !== 'undefined' && (msg.payload.activeTheme || msg.payload.previewThemeId)) {
           document.documentElement.setAttribute(
             'data-theme',
-            msg.payload.previewTheme || msg.payload.activeTheme || 'midnight-mint'
+            msg.payload.previewThemeId || msg.payload.activeTheme || 'midnight-mint'
           );
         }
       } else if (msg.type === 'TIMER_TICK') {
@@ -93,7 +96,8 @@ export const useCrossWindowSync = (isPopover: boolean) => {
               pomodoro: updated.pomodoro,
               audio: updated.audio,
               activeTheme: updated.activeTheme,
-              previewTheme: updated.previewTheme,
+              unlockedThemeIds: updated.unlockedThemeIds,
+              previewThemeId: updated.previewThemeId,
               isProUnlocked: updated.isProUnlocked,
             },
           });
@@ -125,7 +129,7 @@ export const useCrossWindowSync = (isPopover: boolean) => {
 
   // If in main window, broadcast theme changes to popover
   const activeTheme = useDayframeStore((state) => state.activeTheme);
-  const previewTheme = useDayframeStore((state) => state.previewTheme);
+  const previewThemeId = useDayframeStore((state) => state.previewThemeId);
   useEffect(() => {
     if (!isPopover && channelRef.current) {
       const state = useDayframeStore.getState();
@@ -137,12 +141,13 @@ export const useCrossWindowSync = (isPopover: boolean) => {
           pomodoro: state.pomodoro,
           audio: state.audio,
           activeTheme: state.activeTheme,
-          previewTheme: state.previewTheme,
+          unlockedThemeIds: state.unlockedThemeIds,
+          previewThemeId: state.previewThemeId,
           isProUnlocked: state.isProUnlocked,
         },
       });
     }
-  }, [activeTheme, previewTheme, isPopover]);
+  }, [activeTheme, previewThemeId, isPopover]);
 
   const dispatchAction = (action: string, ...args: any[]) => {
     // Run locally

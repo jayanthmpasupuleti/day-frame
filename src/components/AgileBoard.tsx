@@ -18,10 +18,30 @@ import {
   Trash2,
   Undo2,
   FileText,
+  Flame,
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 import { ConfettiCanvas, ConfettiRef } from './ConfettiCanvas';
 import { CompletionCelebration } from './CompletionCelebration';
+
+const KonohaLeafWatermark: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg
+    viewBox="0 0 200 200"
+    className={`pointer-events-none select-none ${className}`}
+    fill="currentColor"
+  >
+    <path
+      d="M100,20 C125,20 155,35 170,60 C185,85 185,120 170,145 C155,170 125,185 95,185 C65,185 35,170 20,145 C5,120 5,85 20,60 C26,50 35,42 45,36 C42,46 42,57 45,67 C35,85 35,110 46,128 C57,146 78,157 100,157 C122,157 143,146 154,128 C165,110 165,85 154,67 C143,49 122,38 100,38 C88,38 77,42 68,49 C64,43 58,38 52,34 C66,25 83,20 100,20 Z"
+      fillRule="evenodd"
+    />
+    <path
+      d="M100,60 C115,60 130,70 138,85 C146,100 146,118 138,133 C130,148 115,158 98,158 C81,158 66,148 58,133 C53,123 53,111 58,101 C61,106 66,110 72,113 C70,118 70,123 73,128 C78,136 88,141 98,141 C108,141 118,136 123,128 C128,120 128,108 123,100 C118,92 108,87 98,87 C91,87 85,90 80,95 C77,90 73,86 68,82 C76,68 87,60 100,60 Z"
+    />
+    <path
+      d="M100,85 C108,85 116,91 120,99 C124,107 124,116 120,124 C116,132 108,138 99,138 C90,138 82,132 78,124 C75,119 75,113 78,108 C81,111 85,113 90,115 C89,118 90,120 92,122 C94,124 97,125 100,125 C103,125 106,124 108,122 C110,120 111,117 111,114 C111,111 110,108 108,106 C106,104 103,103 100,103 C96,103 93,105 91,108 C88,105 85,102 82,99 C87,90 93,85 100,85 Z"
+    />
+  </svg>
+);
 
 const DURATION_OPTIONS = [0, 15, 25, 30, 45, 60, 90];
 
@@ -50,7 +70,11 @@ export const AgileBoard: React.FC = () => {
     pomodoro,
     toggleTimer,
     resetTimer,
+    activeTheme,
+    previewThemeId,
   } = useDayframeStore();
+
+  const isSageTheme = (previewThemeId || activeTheme) === 'sage-chakra';
 
   // Inline Add Task state
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -317,12 +341,17 @@ export const AgileBoard: React.FC = () => {
         onDragOver={handleDragOverBacklog}
         onDragLeave={handleDragLeaveBacklog}
         onDrop={handleDropOnBacklog}
-        className={`col-span-4 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 ${
+        className={`col-span-4 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative overflow-hidden ${
           isDragOverBacklog
             ? 'border-[var(--accent-audio)] ring-2 ring-[var(--accent-audio)]/30 bg-[var(--accent-audio)]/[0.03] scale-[1.006]'
             : 'border-[var(--border-card)]'
         }`}
       >
+        {isSageTheme && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] overflow-hidden">
+            <KonohaLeafWatermark className="w-72 h-72 text-amber-300" />
+          </div>
+        )}
         {/* Header: Column title and active count badge */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-2">
@@ -646,16 +675,23 @@ export const AgileBoard: React.FC = () => {
         onDragOver={handleDragOverFocus}
         onDragLeave={handleDragLeaveFocus}
         onDrop={handleDropOnFocus}
-        className={`col-span-5 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 shadow-[0_0_24px_var(--glow-primary-subtle)] relative overflow-hidden min-h-0 transition-all duration-200 ${
-          isDragOverFocus && focusTask !== null
+        className={`col-span-5 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 relative overflow-hidden min-h-0 transition-all duration-200 ${
+          isSageTheme && focusTask !== null
+            ? 'chakra-flame-aura border-[#FF6B00]'
+            : isDragOverFocus && focusTask !== null
             ? 'border-amber-500/60 ring-2 ring-amber-500/30 bg-amber-500/[0.04]'
             : isDragOverFocus && focusTask === null
             ? 'border-primary ring-2 ring-primary/40 bg-primary/[0.04] shadow-[0_0_35px_var(--glow-primary)] scale-[1.008]'
             : focusTask !== null
-            ? 'border-primary/40'
+            ? 'border-primary/40 shadow-[0_0_24px_var(--glow-primary-subtle)]'
             : 'border-[var(--border-card)]'
         }`}
       >
+        {isSageTheme && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] overflow-hidden">
+            <KonohaLeafWatermark className="w-80 h-80 text-amber-400" />
+          </div>
+        )}
         {/* Ambient subtle dynamic halo */}
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-32 bg-[var(--glow-primary)]/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -802,8 +838,13 @@ export const AgileBoard: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-3">
+                <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] flex flex-wrap items-center justify-between gap-2 mb-3 relative overflow-hidden">
+                  {isSageTheme && (
+                    <div className="absolute right-0 top-0 bottom-0 w-36 pointer-events-none opacity-15 flex items-center justify-end pr-2 overflow-hidden">
+                      <Flame className="w-20 h-20 text-[#FF6B00] -rotate-12 translate-x-2" />
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 relative z-10">
                     <div className="relative flex items-center justify-center">
                       <span
                         className={`inline-block w-2.5 h-2.5 rounded-full ${
