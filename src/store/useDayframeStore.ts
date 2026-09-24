@@ -10,11 +10,13 @@ import type {
   AudioTrack,
   AudioState,
   SyncState,
+  SyncStatus,
   ThemeId,
 } from '../types';
+import { supabase, type User } from '../lib/supabase';
 import { idbStorage } from './idbStorage';
 
-export type { ThemeId };
+export type { ThemeId, SyncStatus };
 
 export interface DayframeStore {
   // Theme Engine & Pro State
@@ -76,7 +78,18 @@ export interface DayframeStore {
   toggleAudioPlaying: () => void;
   setAudioVolume: (volume: number) => void;
 
-  // Cloud Sync
+  // Cloud Sync & Supabase Auth
+  user: User | null;
+  syncStatus: SyncStatus;
+  lastSyncedAt: string | null;
+  isAuthModalOpen: boolean;
+  setUser: (user: User | null) => void;
+  setSyncStatus: (status: SyncStatus) => void;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
+  syncToCloud: () => Promise<void>;
+  pullFromCloud: () => Promise<void>;
+  signOutUser: () => Promise<void>;
   sync: SyncState;
   toggleGuestMode: () => void;
 }
@@ -252,11 +265,21 @@ const DEFAULT_SETTINGS: PomodoroSettings = {
 };
 
 let previewTimer: any = null;
+let syncDebounceTimer: any = null;
 
 export const applyDomTheme = (theme: ThemeId) => {
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute('data-theme', theme);
   }
+};
+
+export const queueBackgroundSync = (get: () => DayframeStore) => {
+  const { user } = get();
+  if (!user || !supabase) return;
+  if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+  syncDebounceTimer = setTimeout(() => {
+    get().syncToCloud();
+  }, 1200);
 };
 
 export const useDayframeStore = create<DayframeStore>()(
@@ -276,6 +299,7 @@ export const useDayframeStore = create<DayframeStore>()(
           history: {},
         };
         set((state) => ({ habits: [...state.habits, newHabit] }));
+        queueBackgroundSync(get);
       },
 
       toggleHabit: (id: string) => {
@@ -318,12 +342,14 @@ export const useDayframeStore = create<DayframeStore>()(
             }
           }),
         }));
+        queueBackgroundSync(get);
       },
 
       deleteHabit: (id: string) => {
         set((state) => ({
           habits: state.habits.filter((h) => h.id !== id),
         }));
+        queueBackgroundSync(get);
       },
 
       // --- AGILE TASKS ---
@@ -347,6 +373,7 @@ export const useDayframeStore = create<DayframeStore>()(
           tag: tag.startsWith('#') ? tag : `#${tag}`,
         };
         set((state) => ({ tasks: [...state.tasks, newTask] }));
+        queueBackgroundSync(get);
       },
 
       setTaskStatus: (id: string, status: TaskStatus) => {
@@ -423,6 +450,7 @@ export const useDayframeStore = create<DayframeStore>()(
             pomodoro: nextPomodoro,
           };
         });
+        queueBackgroundSync(get);
       },
 
       updateTaskDuration: (id: string, durationMinutes: number) => {
@@ -450,6 +478,7 @@ export const useDayframeStore = create<DayframeStore>()(
               : state.pomodoro,
           };
         });
+        queueBackgroundSync(get);
       },
 
       incrementTaskPomo: (id: string) => {
@@ -458,12 +487,14 @@ export const useDayframeStore = create<DayframeStore>()(
             task.id === id ? { ...task, pomosDone: task.pomosDone + 1 } : task
           ),
         }));
+        queueBackgroundSync(get);
       },
 
       deleteTask: (id: string) => {
         set((state) => ({
           tasks: state.tasks.filter((t) => t.id !== id),
         }));
+        queueBackgroundSync(get);
       },
 
       promoteToFocus: (id: string) => {
@@ -628,6 +659,7 @@ export const useDayframeStore = create<DayframeStore>()(
             },
           },
         }));
+        queueBackgroundSync(get);
       },
 
       // Pomodoro UI helper aliases
@@ -701,7 +733,212 @@ export const useDayframeStore = create<DayframeStore>()(
       toggleAudioPlaying: () => get().toggleAudio(),
       setAudioVolume: (vol: number) => get().setVolume(vol),
 
-      // --- CLOUD SYNC ---
+      // --- CLOUD SYNC & SUPABASE AUTH ---
+      user: null,
+      syncStatus: 'offline',
+      lastSyncedAt: null,
+      isAuthModalOpen: false,
+
+      openAuthModal: () => set({ isAuthModalOpen: true }),
+      closeAuthModal: () => set({ isAuthModalOpen: false }),
+
+      setUser: (user: User | null) => {
+        set((state) => ({
+          user,
+          syncStatus: user ? (state.syncStatus === 'offline' ? 'synced' : state.syncStatus) : 'offline',
+          sync: {
+            isGuest: !user,
+            isOnline: Boolean(user),
+            statusText: user ? `Synced (${user.email || 'Cloud'})` : 'Guest / Offline Mode',
+          },
+        }));
+      },
+
+      setSyncStatus: (syncStatus: SyncStatus) => set({ syncStatus }),
+
+      syncToCloud: async () => {
+        const { user } = get();
+        if (!supabase || !user) {
+          set({ syncStatus: 'offline' });
+          return;
+        }
+
+        set({ syncStatus: 'syncing' });
+        try {
+          const state = get();
+          const payload = {
+            user_id: user.id,
+            habits: state.habits,
+            tasks: state.tasks,
+            settings: {
+              pomodoroSettings: state.pomodoro.settings,
+              activeTrackId: state.audio.activeTrackId,
+              volume: state.audio.volume,
+              activeTheme: state.activeTheme,
+            },
+            updated_at: new Date().toISOString(),
+          };
+
+          const { error: dataError } = await supabase
+            .from('user_data')
+            .upsert(payload, { onConflict: 'user_id' });
+
+          if (dataError) throw dataError;
+
+          // Update profiles table
+          await supabase
+            .from('profiles')
+            .upsert(
+              {
+                id: user.id,
+                unlocked_themes: state.unlockedThemeIds,
+                is_pro: state.isProUnlocked,
+              },
+              { onConflict: 'id' }
+            );
+
+          const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          set({
+            syncStatus: 'synced',
+            lastSyncedAt: timeStr,
+            sync: {
+              isGuest: false,
+              isOnline: true,
+              statusText: `Synced at ${timeStr}`,
+            },
+          });
+        } catch (err) {
+          console.warn('[Dayframe Sync] Push error:', err);
+          set({ syncStatus: 'error' });
+        }
+      },
+
+      pullFromCloud: async () => {
+        const { user } = get();
+        if (!supabase || !user) {
+          set({ syncStatus: 'offline' });
+          return;
+        }
+
+        set({ syncStatus: 'syncing' });
+        try {
+          const { data: remoteData, error: dataError } = await supabase
+            .from('user_data')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          if (dataError) throw dataError;
+
+          const { data: remoteProfile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          const state = get();
+          let mergedHabits = state.habits;
+          let mergedTasks = state.tasks;
+          let mergedUnlockedThemes = state.unlockedThemeIds;
+          let mergedIsPro = state.isProUnlocked;
+
+          if (remoteProfile) {
+            if (Array.isArray(remoteProfile.unlocked_themes) && remoteProfile.unlocked_themes.length > 0) {
+              mergedUnlockedThemes = Array.from(
+                new Set([...state.unlockedThemeIds, ...remoteProfile.unlocked_themes])
+              ) as ThemeId[];
+            }
+            if (remoteProfile.is_pro) {
+              mergedIsPro = true;
+            }
+          }
+
+          if (remoteData) {
+            // 1. Merge habits by ID
+            const remoteHabits: Habit[] = Array.isArray(remoteData.habits) ? remoteData.habits : [];
+            const localHabitMap = new Map(state.habits.map((h) => [h.id, h]));
+            remoteHabits.forEach((rh) => {
+              const local = localHabitMap.get(rh.id);
+              if (local) {
+                localHabitMap.set(rh.id, {
+                  ...rh,
+                  ...local,
+                  streak: Math.max(rh.streak || 0, local.streak || 0),
+                  completedToday: local.completedToday || rh.completedToday,
+                  history: { ...(rh.history || {}), ...(local.history || {}) },
+                });
+              } else {
+                localHabitMap.set(rh.id, rh);
+              }
+            });
+            mergedHabits = Array.from(localHabitMap.values());
+
+            // 2. Merge tasks by ID
+            const remoteTasks: AgileTask[] = Array.isArray(remoteData.tasks) ? remoteData.tasks : [];
+            const localTaskMap = new Map(state.tasks.map((t) => [t.id, t]));
+            remoteTasks.forEach((rt) => {
+              const local = localTaskMap.get(rt.id);
+              if (local) {
+                const isLocalDone = local.status === 'done';
+                const isRemoteDone = rt.status === 'done';
+                localTaskMap.set(rt.id, {
+                  ...rt,
+                  ...local,
+                  status: isLocalDone ? 'done' : isRemoteDone ? 'done' : local.status,
+                  pomosDone: Math.max(rt.pomosDone || 0, local.pomosDone || 0),
+                });
+              } else {
+                localTaskMap.set(rt.id, rt);
+              }
+            });
+            mergedTasks = Array.from(localTaskMap.values());
+
+            if (remoteData.settings?.pomodoroSettings) {
+              state.updateSettings(remoteData.settings.pomodoroSettings);
+            }
+          }
+
+          const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          set({
+            habits: mergedHabits,
+            tasks: mergedTasks,
+            unlockedThemeIds: mergedUnlockedThemes,
+            isProUnlocked: mergedIsPro,
+            syncStatus: 'synced',
+            lastSyncedAt: timeStr,
+            sync: {
+              isGuest: false,
+              isOnline: true,
+              statusText: `Synced at ${timeStr}`,
+            },
+          });
+
+          // Sync back the combined result so cloud has any new local items
+          await get().syncToCloud();
+        } catch (err) {
+          console.warn('[Dayframe Sync] Pull error:', err);
+          set({ syncStatus: 'error' });
+        }
+      },
+
+      signOutUser: async () => {
+        if (supabase) {
+          try {
+            await supabase.auth.signOut();
+          } catch {}
+        }
+        set({
+          user: null,
+          syncStatus: 'offline',
+          sync: {
+            isGuest: true,
+            isOnline: false,
+            statusText: 'Guest / Offline Mode',
+          },
+          isAuthModalOpen: false,
+        });
+      },
+
       sync: {
         isGuest: true,
         isOnline: false,
@@ -709,16 +946,12 @@ export const useDayframeStore = create<DayframeStore>()(
       },
 
       toggleGuestMode: () => {
-        set((state) => {
-          const nextGuest = !state.sync.isGuest;
-          return {
-            sync: {
-              isGuest: nextGuest,
-              isOnline: !nextGuest,
-              statusText: nextGuest ? 'Guest / Offline Mode' : 'Connected to Supabase',
-            },
-          };
-        });
+        const { user } = get();
+        if (user) {
+          get().syncToCloud();
+        } else {
+          get().openAuthModal();
+        }
       },
 
       // --- THEME ENGINE & PRO STATE ---
@@ -808,6 +1041,7 @@ export const useDayframeStore = create<DayframeStore>()(
           previewThemeId: null,
           previewSecondsRemaining: 0,
         });
+        queueBackgroundSync(get);
       },
 
       unlockProMock: () => {
@@ -833,6 +1067,7 @@ export const useDayframeStore = create<DayframeStore>()(
           previewThemeId: null,
           previewSecondsRemaining: 0,
         });
+        queueBackgroundSync(get);
       },
 
       openThemeModal: () => set({ isThemeModalOpen: true }),
@@ -877,6 +1112,7 @@ export const useDayframeStore = create<DayframeStore>()(
           isPlayingAudio: false,
         },
         sync: state.sync,
+        lastSyncedAt: state.lastSyncedAt,
         activeTheme: state.activeTheme,
         unlockedThemeIds: state.unlockedThemeIds,
         isProUnlocked: state.isProUnlocked,

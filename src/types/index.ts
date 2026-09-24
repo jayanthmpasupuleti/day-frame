@@ -52,6 +52,8 @@ export interface AudioState {
   volume: number; // 0.0 to 1.0
 }
 
+export type SyncStatus = 'offline' | 'synced' | 'syncing' | 'error';
+
 export interface SyncState {
   isGuest: boolean;
   isOnline: boolean;

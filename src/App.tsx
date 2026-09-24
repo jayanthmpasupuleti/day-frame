@@ -6,9 +6,11 @@ import { BottomDock } from './components/BottomDock';
 import { AudioEngine } from './components/AudioEngine';
 import { TrayPopover } from './components/TrayPopover';
 import { ThemeModal } from './components/ThemeModal';
+import { AuthModal } from './components/AuthModal';
 import { useTimerEngine } from './hooks/useTimerEngine';
 import { useCrossWindowSync } from './hooks/useCrossWindowSync';
 import { useTraySync } from './hooks/useTraySync';
+import { useSyncEngine } from './hooks/useSyncEngine';
 import { useDayframeStore } from './store/useDayframeStore';
 
 if (typeof window !== 'undefined') {
@@ -59,10 +61,11 @@ export const App: React.FC = () => {
   }
 
   // Otherwise, this is the main dashboard window:
-  // Mount global Pomodoro timer ticking engine, cross-window sync, and tray menu/title sync
+  // Mount global Pomodoro timer ticking engine, cross-window sync, tray menu/title sync, and cloud sync engine
   useTimerEngine();
   useCrossWindowSync(false);
   useTraySync();
+  useSyncEngine();
 
   return (
     <div className="h-screen w-screen flex items-center justify-center p-0 bg-[var(--bg-canvas)] text-[#DCE2EC] antialiased font-sans relative overflow-hidden selection:bg-primary selection:text-primaryText transition-colors duration-300">
@@ -87,6 +90,9 @@ export const App: React.FC = () => {
 
         {/* Theme Switcher & Legendary Preview Modal */}
         <ThemeModal />
+
+        {/* Cloud Authentication & Sync Modal */}
+        <AuthModal />
       </div>
     </div>
   );

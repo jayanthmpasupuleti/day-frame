@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Volume2,
   VolumeX,
   Radio,
   Cloud,
-  CloudOff,
   Link as LinkIcon,
   ChevronUp,
   X,
   Zap,
   Headphones,
   Check,
+  Lock,
+  RefreshCw,
+  LogOut,
+  User as UserIcon,
+  AlertTriangle,
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 import type { PomodoroMode, AudioTrack } from '../types';
@@ -31,14 +35,33 @@ export const BottomDock: React.FC = () => {
     pomodoro,
     setMode,
     updateSettings,
-    sync,
-    toggleGuestMode,
+    user,
+    syncStatus,
+    lastSyncedAt,
+    openAuthModal,
+    syncToCloud,
+    signOutUser,
   } = useDayframeStore();
 
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
   const [isCustomUrlOpen, setIsCustomUrlOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const [customTitle, setCustomTitle] = useState('');
   const [urlInput, setUrlInput] = useState('');
+
+  // Close user sync popover menu on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserMenuOpen]);
 
   // Combine default preset streams with any custom tracks added
   const allTracks: AudioTrack[] = [
@@ -289,34 +312,127 @@ export const BottomDock: React.FC = () => {
       </div>
 
       {/* ===================================================================== */}
-      {/* Right: Cloud Sync Status (Guest / Offline Mode)                       */}
+      {/* Right: Cloud Sync Status (Guest / Synced / Syncing)                   */}
       {/* ===================================================================== */}
-      <div className="flex items-center justify-end gap-2.5 flex-1 max-w-[340px] text-right min-w-0">
-        <button
-          onClick={toggleGuestMode}
-          className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full border transition-all cursor-pointer text-[10.5px] sm:text-[11px] shrink-0 ${
-            sync.isGuest
-              ? 'bg-[var(--bg-inset)] border-[var(--border-card)] text-[#94A3B8] hover:border-white/20'
-              : 'bg-primary/10 border-primary/40 text-primary'
-          }`}
-          title="Click to toggle Guest / Supabase Cloud Sync"
-        >
-          {sync.isGuest ? (
-            <>
-              <CloudOff className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span className="truncate max-w-[90px] sm:max-w-none">Guest / Offline</span>
-              <span className="text-[10px] text-primary font-mono underline hover:brightness-110 shrink-0">
-                Sign In
+      <div className="flex items-center justify-end gap-2.5 flex-1 max-w-[360px] text-right min-w-0 relative" ref={userMenuRef}>
+        {!user ? (
+          /* Guest / Local Storage State */
+          <button
+            onClick={openAuthModal}
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full border border-[var(--border-card)] bg-[var(--bg-inset)] hover:border-white/20 text-[#94A3B8] hover:text-white transition-all cursor-pointer text-[10.5px] sm:text-[11px] shrink-0 group active:scale-98 shadow-xs"
+            title="Local-first storage active. Click to sign in for multi-device cloud sync."
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-400/80 group-hover:text-amber-400 shrink-0" />
+            <span className="truncate max-w-[85px] sm:max-w-none font-medium">Local Storage</span>
+            <span className="text-slate-600 select-none">•</span>
+            <span className="text-[10px] text-primary font-mono font-semibold hover:underline shrink-0">
+              Sign In to Sync
+            </span>
+          </button>
+        ) : (
+          /* Signed In State (Synced, Syncing, or Error) */
+          <>
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full border transition-all cursor-pointer text-[10.5px] sm:text-[11px] shrink-0 active:scale-98 shadow-xs ${
+                syncStatus === 'syncing'
+                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                  : syncStatus === 'error'
+                  ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                  : 'bg-primary/10 border-primary/30 text-primary hover:border-primary/50'
+              }`}
+              title="Click to view cloud sync status and account options"
+            >
+              {syncStatus === 'syncing' ? (
+                <>
+                  <RefreshCw className="w-3 h-3 text-amber-400 animate-spin shrink-0" />
+                  <span className="font-semibold text-white">Syncing...</span>
+                </>
+              ) : syncStatus === 'error' ? (
+                <>
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span className="font-semibold text-rose-300">Sync Error</span>
+                </>
+              ) : (
+                <>
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_6px_#10B981]" />
+                  </span>
+                  <Cloud className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="font-semibold text-white">Synced</span>
+                </>
+              )}
+              <span className="text-slate-600 select-none">•</span>
+              <span className="truncate max-w-[100px] sm:max-w-[130px] font-mono text-[10px] text-slate-300">
+                {user.email || 'Cloud User'}
               </span>
-            </>
-          ) : (
-            <>
-              <Cloud className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span className="font-semibold text-white truncate max-w-[120px] sm:max-w-none">Cloud Sync</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0" />
-            </>
-          )}
-        </button>
+            </button>
+
+            {/* Account & Sync Dropdown Popover */}
+            {isUserMenuOpen && (
+              <div className="absolute bottom-12 right-0 w-64 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-bottom-2 text-left">
+                {/* User Info Header */}
+                <div className="flex items-center gap-2.5 pb-2.5 mb-2 border-b border-[var(--border-card)]">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-xs uppercase shrink-0">
+                    {user.email ? user.email.charAt(0) : <UserIcon className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[12px] font-semibold text-white truncate">
+                      {user.email || 'Connected Account'}
+                    </p>
+                    <p className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                      <span>Encrypted Cloud Backup</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sync Details */}
+                <div className="px-1 py-1 text-[10.5px] text-slate-400 space-y-1 mb-2">
+                  <div className="flex items-center justify-between">
+                    <span>Status</span>
+                    <span className="font-mono text-slate-200 capitalize">
+                      {syncStatus === 'syncing' ? 'Syncing...' : syncStatus === 'error' ? 'Failed' : 'Up to date'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Last synced</span>
+                    <span className="font-mono text-slate-200">
+                      {lastSyncedAt || 'Just now'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-1 pt-1 border-t border-[var(--border-card)]">
+                  <button
+                    onClick={() => {
+                      syncToCloud();
+                      setIsUserMenuOpen(false);
+                    }}
+                    disabled={syncStatus === 'syncing'}
+                    className="w-full py-1.5 px-2.5 rounded-lg text-[11px] font-medium text-slate-200 hover:text-white hover:bg-white/[0.08] transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3 h-3 text-primary ${syncStatus === 'syncing' ? 'animate-spin' : ''}`} />
+                    <span>Sync Now</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      signOutUser();
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="w-full py-1.5 px-2.5 rounded-lg text-[11px] font-medium text-rose-300 hover:text-rose-200 hover:bg-rose-500/10 transition-colors flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="w-3 h-3 text-rose-400" />
+                    <span>Sign Out (Keep Local Data)</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* ===================================================================== */}
