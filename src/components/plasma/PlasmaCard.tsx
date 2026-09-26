@@ -30,7 +30,7 @@ export interface PlasmaCardProps
 
 export const PlasmaCard = forwardRef<HTMLDivElement, PlasmaCardProps>(({
   as = 'div',
-  elevation = 0.35,
+  elevation = 0.2,
   radius = 16,
   tint,
   opacity,
@@ -39,7 +39,7 @@ export const PlasmaCard = forwardRef<HTMLDivElement, PlasmaCardProps>(({
   draggable = false,
   snap = true,
   group,
-  lean = 10,
+  lean = false,
   padding,
   bounds,
   offset,

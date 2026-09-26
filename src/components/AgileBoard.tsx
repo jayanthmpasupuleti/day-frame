@@ -22,7 +22,7 @@ import {
 import { useDayframeStore } from '../store/useDayframeStore';
 import { ConfettiCanvas, ConfettiRef } from './ConfettiCanvas';
 import { CompletionCelebration } from './CompletionCelebration';
-import { Plasma, usePlasmaRuntime } from '@cruxgarden/plasma-ui';
+import { Plasma } from '@cruxgarden/plasma-ui';
 import type { Offset } from '@cruxgarden/plasma-ui';
 import {
   PlasmaCard,
@@ -91,9 +91,6 @@ export const AgileBoard: React.FC = () => {
   const [taskPomos, setTaskPomos] = useState(2);
   const [taskDuration, setTaskDuration] = useState(25);
 
-  // Plasma Runtime for dynamic shockwave and fluid haptics
-  const plasmaRuntime = usePlasmaRuntime();
-
   // Plasma Liquid Drag and Drop States & Refs
   const [activeDraggingId, setActiveDraggingId] = useState<string | null>(null);
   const [isHoveringFocus, setIsHoveringFocus] = useState(false);
@@ -115,23 +112,24 @@ export const AgileBoard: React.FC = () => {
       return;
     }
 
+    const focusRect = focusColRef.current?.getBoundingClientRect();
+    const backlogRect = backlogColRef.current?.getBoundingClientRect();
+
     const onPointerMove = (e: PointerEvent) => {
-      if (focusColRef.current) {
-        const rect = focusColRef.current.getBoundingClientRect();
+      if (focusRect) {
         const over =
-          e.clientX >= rect.left &&
-          e.clientX <= rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY <= rect.bottom;
+          e.clientX >= focusRect.left &&
+          e.clientX <= focusRect.right &&
+          e.clientY >= focusRect.top &&
+          e.clientY <= focusRect.bottom;
         setIsHoveringFocus(over);
       }
-      if (backlogColRef.current) {
-        const rect = backlogColRef.current.getBoundingClientRect();
+      if (backlogRect) {
         const over =
-          e.clientX >= rect.left &&
-          e.clientX <= rect.right &&
-          e.clientY >= rect.top &&
-          e.clientY <= rect.bottom;
+          e.clientX >= backlogRect.left &&
+          e.clientX <= backlogRect.right &&
+          e.clientY >= backlogRect.top &&
+          e.clientY <= backlogRect.bottom;
         setIsHoveringBacklog(over);
       }
     };
@@ -324,10 +322,6 @@ export const AgileBoard: React.FC = () => {
     }
 
     if (isDroppedInBacklog) {
-      try {
-        plasmaRuntime.pulse(cardCenterX, cardCenterY, 1.8);
-        plasmaRuntime.bump(0.8);
-      } catch {}
       setTaskStatus(focusTask.id, 'backlog');
       setFocusCardOffset(undefined);
     } else {
@@ -402,7 +396,7 @@ export const AgileBoard: React.FC = () => {
             as="section"
             elevation={0.25}
             radius={18}
-            lean={6}
+            lean={false}
             fuse={false}
             className={`col-span-4 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[18px] border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative ${
               activeDraggingId
@@ -737,7 +731,7 @@ export const AgileBoard: React.FC = () => {
         as="section"
         elevation={0.35}
         radius={20}
-        lean={8}
+        lean={false}
         fuse={false}
         className={`col-span-5 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[20px] border p-3 sm:p-4 relative min-h-0 transition-all duration-200 ${
           isSageTheme && focusTask !== null
@@ -810,7 +804,7 @@ export const AgileBoard: React.FC = () => {
             active={true}
             draggable={true}
             snap={false}
-            lean={12}
+            lean={false}
             fuse={true}
             offset={focusCardOffset}
             onDragStart={handleFocusCardDragStart}
@@ -1031,7 +1025,7 @@ export const AgileBoard: React.FC = () => {
         as="section"
         elevation={0.25}
         radius={18}
-        lean={6}
+        lean={false}
         fuse={false}
         className="col-span-3 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[18px] border border-[var(--border-card)]/50 p-3 sm:p-4 shadow-card min-h-0 relative z-10 overflow-hidden"
       >
