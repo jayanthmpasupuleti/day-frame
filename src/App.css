@@ -118,25 +118,7 @@
 .bar-2 { animation: equalizer-bar 1.2s ease-in-out infinite 0.2s; }
 .bar-3 { animation: equalizer-bar 0.7s ease-in-out infinite 0.4s; }
 
-/* Kanban Drag & Drop Animations */
-@keyframes drop-glow {
-  0% {
-    box-shadow: 0 0 0 0 var(--glow-primary, rgba(0, 229, 153, 0.4));
-    transform: scale(0.98);
-  }
-  50% {
-    box-shadow: 0 0 40px 6px var(--glow-primary, rgba(0, 229, 153, 0.4)), inset 0 0 20px var(--glow-primary, rgba(0, 229, 153, 0.2));
-    transform: scale(1.015);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-    transform: scale(1);
-  }
-}
-.animate-drop-glow {
-  animation: drop-glow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
+/* Kanban Drag & Drop Target Indicator */
 @keyframes drop-target-pulse {
   0%, 100% {
     border-color: var(--accent-primary, rgba(0, 229, 153, 0.4));
@@ -150,33 +132,6 @@
 }
 .animate-dropzone {
   animation: drop-target-pulse 1.4s ease-in-out infinite;
-}
-
-@keyframes liquid-drop-bloom {
-  0% {
-    opacity: 0.5;
-    transform: scale(0.93) translateY(8px);
-    box-shadow: 0 0 50px 10px var(--glow-primary, rgba(0, 229, 153, 0.45));
-    filter: brightness(1.3) saturate(1.3);
-  }
-  40% {
-    opacity: 1;
-    transform: scale(1.025) translateY(-3px);
-    box-shadow: 0 0 35px 6px var(--glow-primary, rgba(0, 229, 153, 0.35));
-    filter: brightness(1.15) saturate(1.15);
-  }
-  75% {
-    transform: scale(0.995) translateY(1px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-    box-shadow: 0 0 16px var(--glow-primary, rgba(0, 229, 153, 0.2));
-    filter: brightness(1) saturate(1);
-  }
-}
-.animate-liquid-drop {
-  animation: liquid-drop-bloom 0.7s cubic-bezier(0.2, 0.9, 0.3, 1.25) forwards;
 }
 
 @keyframes card-enter {

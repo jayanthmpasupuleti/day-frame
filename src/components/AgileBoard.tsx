@@ -100,7 +100,6 @@ export const AgileBoard: React.FC = () => {
   const [isHoveringBacklog, setIsHoveringBacklog] = useState(false);
   const [cardOffsets, setCardOffsets] = useState<Record<string, { x: number; y: number }>>({});
   const [focusCardOffset, setFocusCardOffset] = useState<{ x: number; y: number } | undefined>(undefined);
-  const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
   const [blockedAlert, setBlockedAlert] = useState<string | null>(null);
 
   const backlogColRef = useRef<HTMLElement | null>(null);
@@ -276,16 +275,8 @@ export const AgileBoard: React.FC = () => {
           setCardOffsets((prev) => ({ ...prev, [taskId]: { x: 0, y: 0 } }));
         });
       } else {
-        // Trigger liquid shockwave ripple on drop!
-        try {
-          plasmaRuntime.pulse(cardCenterX, cardCenterY, 2.2);
-          plasmaRuntime.bump(1.2);
-        } catch {}
-
         // Promote to In Focus!
         setTaskStatus(taskId, 'in_focus');
-        setJustDroppedId(taskId);
-        setTimeout(() => setJustDroppedId(null), 900);
         setCardOffsets((prev) => {
           const next = { ...prev };
           delete next[taskId];
@@ -358,8 +349,6 @@ export const AgileBoard: React.FC = () => {
       return;
     }
     setTaskStatus(taskId, 'in_focus');
-    setJustDroppedId(taskId);
-    setTimeout(() => setJustDroppedId(null), 700);
   };
 
   return (
@@ -827,8 +816,6 @@ export const AgileBoard: React.FC = () => {
             onDragStart={handleFocusCardDragStart}
             onDragEnd={handleFocusCardDragEnd}
             className={`flex-1 flex flex-col justify-between p-4 relative z-10 transition-colors duration-200 ${
-              justDroppedId === focusTask.id ? 'animate-liquid-drop animate-drop-glow' : ''
-            } ${
               activeDraggingId === focusTask.id
                 ? 'z-50 border-dashed border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-2xl cursor-grabbing'
                 : 'cursor-grab'
