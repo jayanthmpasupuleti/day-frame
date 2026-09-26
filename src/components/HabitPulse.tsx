@@ -14,6 +14,13 @@ import {
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 import type { Habit } from '../types';
+import {
+  PlasmaBadge,
+  PlasmaButton,
+  PlasmaProgress,
+  PlasmaInput,
+  PlasmaCard,
+} from './plasma';
 
 // Helper to get category icon for habits
 const getCategoryIcon = (category?: Habit['category']) => {
@@ -139,54 +146,48 @@ export const HabitPulse: React.FC = () => {
       {/* --------------------------------------------------------------------- */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-[#94A3B8] font-mono">
+          <span className="text-[10px] font-bold tracking-widest uppercase text-slate-400 font-mono">
             HABIT PULSE
           </span>
-          <span className="text-[10.5px] font-mono text-slate-500 tabular-nums">
-            • {completedCount} of {habits.length} COMPLETED
-          </span>
+          <PlasmaBadge variant="muted" mono size="sm">
+            {completedCount} of {habits.length} COMPLETED
+          </PlasmaBadge>
         </div>
 
         {/* Right: Expandable Grid Toggle Pill + Progress Bar */}
         <div className="flex items-center gap-3">
           {/* Heatmap Grid Toggle Pill Button */}
-          <button
+          <PlasmaButton
+            size="sm"
+            variant={isHeatmapExpanded ? 'primary' : 'subtle'}
             onClick={() => setIsHeatmapExpanded((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-semibold border transition-all cursor-pointer ${
-              isHeatmapExpanded
-                ? 'bg-primary/15 text-primary border-primary/40 shadow-mint-glow'
-                : 'bg-[var(--bg-inset)] text-[#94A3B8] hover:text-white border-[var(--border-card)] hover:border-white/20'
-            }`}
             title={isHeatmapExpanded ? 'Collapse Habit History Grid' : 'Expand Habit History Grid'}
+            className="font-mono text-[10px]"
           >
             <LayoutGrid className="w-3 h-3 text-current" />
             <span>History / Grid</span>
             <ChevronDown
               className={`w-3 h-3 transition-transform duration-200 ${
-                isHeatmapExpanded ? 'rotate-180 text-primary' : ''
+                isHeatmapExpanded ? 'rotate-180' : ''
               }`}
             />
-          </button>
+          </PlasmaButton>
 
           {/* Completion Progress Indicator */}
           <div className="flex items-center gap-2">
-            <div className="h-1.5 w-20 rounded-full bg-[var(--bg-inset)] overflow-hidden p-0.2">
-              <div
-                className="h-full rounded-full bg-[var(--accent-secondary)] transition-all duration-300 shadow-mint-glow"
-                style={{
-                  width: `${habits.length > 0 ? (completedCount / habits.length) * 100 : 0}%`,
-                }}
-              />
-            </div>
-            <span className="text-[10px] font-mono text-[var(--accent-secondary)] font-bold tabular-nums">
-              {habits.length > 0 ? Math.round((completedCount / habits.length) * 100) : 0}%
-            </span>
+            <PlasmaProgress
+              value={completedCount}
+              max={habits.length || 1}
+              size="sm"
+              showLabel
+              className="w-24"
+            />
           </div>
         </div>
       </div>
 
       {/* --------------------------------------------------------------------- */}
-      {/* Horizontal Habit Pills Row                                            */}
+      {/* Horizontal Habit Chips Row using Plasma Primitives                     */}
       {/* --------------------------------------------------------------------- */}
       <div
         ref={scrollContainerRef}
@@ -194,28 +195,30 @@ export const HabitPulse: React.FC = () => {
         className="flex items-center gap-2 overflow-x-auto pt-2 pb-0.5 pr-6 no-scrollbar scroll-smooth"
       >
         {habits.map((habit) => (
-          <button
+          <PlasmaBadge
             key={habit.id}
+            interactive
+            active={habit.completedToday}
+            variant={habit.completedToday ? 'primary' : 'outline'}
+            size="md"
             onClick={() => toggleHabit(habit.id)}
-            className={`flex items-center gap-2 px-3 py-1 rounded-full border transition-all cursor-pointer flex-shrink-0 group ${
-              habit.completedToday
-                ? 'bg-[var(--accent-secondary)]/15 border-[var(--accent-secondary)] shadow-[0_0_12px_var(--glow-primary)] text-white'
-                : 'bg-[var(--bg-inset)] border-[var(--border-card)] hover:border-white/20 text-slate-300'
-            }`}
+            className="flex-shrink-0 gap-2 px-3 py-1 cursor-pointer"
           >
             {/* Circle State Indicator */}
             {habit.completedToday ? (
-              <div className="w-4 h-4 rounded-full bg-[var(--accent-secondary)] flex items-center justify-center text-[var(--accent-primary-text)] shadow-mint-btn">
+              <div className="w-4 h-4 rounded-full bg-[var(--accent-primary-text)] text-[var(--accent-primary)] flex items-center justify-center shadow-xs">
                 <Check className="w-2.5 h-2.5 stroke-[3]" />
               </div>
             ) : (
-              <div className="w-4 h-4 rounded-full border border-white/25 bg-[var(--bg-card)] group-hover:border-[var(--accent-secondary)]/60 transition-colors flex items-center justify-center" />
+              <div className="w-4 h-4 rounded-full border border-white/25 bg-[var(--bg-card)] flex items-center justify-center">
+                {getCategoryIcon(habit.category)}
+              </div>
             )}
 
             {/* Habit Name */}
             <span
               className={`text-[11.5px] font-medium tracking-tight ${
-                habit.completedToday ? 'text-white font-semibold' : 'text-slate-300 group-hover:text-white'
+                habit.completedToday ? 'font-bold' : 'text-slate-300'
               }`}
             >
               {habit.name}
@@ -226,30 +229,32 @@ export const HabitPulse: React.FC = () => {
               <span
                 className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold flex items-center gap-0.5 ${
                   habit.completedToday
-                    ? 'bg-[var(--accent-secondary)]/20 text-[var(--accent-secondary)]'
-                    : 'bg-white/[0.05] text-[#94A3B8]'
+                    ? 'bg-black/20 text-current'
+                    : 'bg-white/[0.08] text-slate-300'
                 }`}
               >
-                <Flame className="w-2.5 h-2.5 fill-current" />
+                <Flame className="w-2.5 h-2.5 fill-current text-amber-400" />
                 <span className="tabular-nums">{habit.streak}d</span>
               </span>
             )}
-          </button>
+          </PlasmaBadge>
         ))}
 
         {/* + Add Habit Pill Button */}
-        <button
+        <PlasmaButton
+          size="sm"
+          variant="secondary"
           onClick={() => setIsAdding(true)}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-dashed border-white/20 hover:border-primary/60 text-[#94A3B8] hover:text-primary text-[11px] font-medium transition-all cursor-pointer flex-shrink-0"
+          className="flex-shrink-0 text-[11px]"
           title="Add a new daily habit"
         >
           <Plus className="w-3 h-3 stroke-[2.5]" />
           <span>Add Habit</span>
-        </button>
+        </PlasmaButton>
       </div>
 
       {/* --------------------------------------------------------------------- */}
-      {/* Collapsible Heatmap Drawer (Habitify / GitHub Inspired)               */}
+      {/* Collapsible Heatmap Drawer (PlasmaCard Surface)                       */}
       {/* --------------------------------------------------------------------- */}
       <div
         className={`transition-all duration-300 ease-in-out overflow-hidden ${
@@ -258,11 +263,11 @@ export const HabitPulse: React.FC = () => {
             : 'max-h-0 opacity-0 mt-0 pt-0 pointer-events-none'
         }`}
       >
-        <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] shadow-card">
+        <PlasmaCard elevation={0.2} radius={14} className="p-3.5">
           <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-white/[0.05]">
             <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-secondary)] shadow-[0_0_6px_var(--glow-primary)]" />
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] shadow-[0_0_6px_var(--glow-primary)]" />
+              <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-mono">
                 Consistency Heatmap (Trailing 8 Weeks)
               </h3>
             </div>
@@ -277,9 +282,11 @@ export const HabitPulse: React.FC = () => {
               const rate30d = get30DayCompletionRate(habit);
 
               return (
-                <div
+                <PlasmaCard
                   key={habit.id}
-                  className="p-3 rounded-xl bg-[var(--bg-inset)]/70 border border-[var(--border-card)] hover:border-white/[0.15] transition-all flex items-center justify-between gap-3 shadow-xs"
+                  elevation={0.1}
+                  radius={12}
+                  className="p-3 flex items-center justify-between gap-3 shadow-xs"
                 >
                   {/* Left: Habit Meta Info */}
                   <div className="min-w-[130px] flex-1">
@@ -298,7 +305,9 @@ export const HabitPulse: React.FC = () => {
                         <span className="tabular-nums">{habit.streak}d</span>
                       </span>
                       <span className="text-slate-400">
-                        <span className="text-[var(--accent-secondary)] font-bold tabular-nums">{rate30d}%</span>{' '}
+                        <span className="text-[var(--accent-primary)] font-bold tabular-nums">
+                          {rate30d}%
+                        </span>{' '}
                         <span className="text-[9.5px] text-slate-500">30d</span>
                       </span>
                     </div>
@@ -346,8 +355,8 @@ export const HabitPulse: React.FC = () => {
                                       ? 'bg-[var(--bg-inset)]/40 border border-white/[0.02] cursor-default'
                                       : isDone
                                       ? isHighTier
-                                        ? 'bg-[var(--accent-secondary)] brightness-110 shadow-[0_0_6px_var(--glow-primary)] hover:brightness-125 hover:scale-125'
-                                        : 'bg-[var(--accent-secondary)]/85 shadow-[0_0_4px_var(--glow-primary)] hover:brightness-125 hover:scale-125'
+                                        ? 'bg-[var(--accent-primary)] brightness-110 shadow-[0_0_6px_var(--glow-primary)] hover:brightness-125 hover:scale-125'
+                                        : 'bg-[var(--accent-primary)]/85 shadow-[0_0_4px_var(--glow-primary)] hover:brightness-125 hover:scale-125'
                                       : 'bg-[var(--bg-canvas)] border border-white/[0.04] hover:border-white/20 hover:scale-110'
                                   }`}
                                   title={`${dateFormatted} • ${statusText}`}
@@ -366,44 +375,45 @@ export const HabitPulse: React.FC = () => {
                         <span>Missed</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-[1px] bg-[var(--accent-secondary)] shadow-[0_0_4px_var(--glow-primary)]" />
+                        <span className="w-1.5 h-1.5 rounded-[1px] bg-[var(--accent-primary)] shadow-[0_0_4px_var(--glow-primary)]" />
                         <span>Done</span>
                       </div>
                     </div>
                   </div>
-                </div>
+                </PlasmaCard>
               );
             })}
           </div>
-        </div>
+        </PlasmaCard>
       </div>
 
       {/* --------------------------------------------------------------------- */}
-      {/* Anchored Add Habit Bar (Slides in, zero right-overflow)               */}
+      {/* Anchored Add Habit Bar using Plasma Primitives                        */}
       {/* --------------------------------------------------------------------- */}
       {isAdding && (
         <div
-          className="absolute inset-x-0 top-0 bottom-0 z-30 px-5 bg-[var(--bg-card)]/95 backdrop-blur-xl flex items-center justify-between border-b border-primary/30 animate-in fade-in duration-150"
+          className="absolute inset-x-0 top-0 bottom-0 z-30 px-5 bg-[var(--bg-card)]/95 backdrop-blur-xl flex items-center justify-between border-b border-[var(--accent-primary)]/30 animate-in fade-in duration-150"
           onKeyDown={handleKeyDown}
         >
           <div className="flex items-center gap-2 flex-1 max-w-xl">
-            <span className="text-[11px] font-mono uppercase text-primary font-bold">
+            <span className="text-[11px] font-mono uppercase text-[var(--accent-primary)] font-bold">
               New Ritual:
             </span>
             <form onSubmit={handleAdd} className="flex-1 flex items-center gap-2">
-              <input
+              <PlasmaInput
                 ref={inputRef}
                 type="text"
                 value={newHabitName}
                 onChange={(e) => setNewHabitName(e.target.value)}
                 placeholder="e.g. Read 20m, Hydrate (2L), Code / Build..."
-                className="flex-1 h-8 px-3 rounded-full bg-[var(--bg-inset)] border border-white/20 text-[12px] text-white placeholder-slate-500 focus:outline-none focus:border-primary"
+                className="flex-1"
+                autoFocus
               />
 
               <select
                 value={newHabitCategory}
                 onChange={(e) => setNewHabitCategory(e.target.value as Habit['category'])}
-                className="h-8 px-2 rounded-full bg-[var(--bg-inset)] border border-white/20 text-[10.5px] font-mono text-slate-300 focus:outline-none"
+                className="h-8 px-2 rounded-xl bg-[var(--bg-inset)] border border-white/20 text-[10.5px] font-mono text-slate-300 focus:outline-none"
               >
                 <option value="focus">Focus</option>
                 <option value="mindset">Mindset</option>
@@ -411,25 +421,29 @@ export const HabitPulse: React.FC = () => {
                 <option value="routine">Routine</option>
               </select>
 
-              <button
+              <PlasmaButton
                 type="submit"
-                className="h-8 px-3.5 rounded-full bg-primary hover:brightness-110 text-primaryText text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer shrink-0"
+                variant="primary"
+                size="sm"
+                className="shrink-0 font-bold"
               >
                 Save Habit
-              </button>
+              </PlasmaButton>
             </form>
           </div>
 
-          <button
+          <PlasmaButton
+            size="icon"
+            variant="ghost"
             onClick={() => {
               setIsAdding(false);
               setNewHabitName('');
             }}
-            className="w-7 h-7 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0 ml-2"
+            className="shrink-0 ml-2"
             title="Cancel (Esc)"
           >
             <X className="w-4 h-4" />
-          </button>
+          </PlasmaButton>
         </div>
       )}
     </section>

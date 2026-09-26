@@ -23,6 +23,13 @@ import {
 import { useDayframeStore } from '../store/useDayframeStore';
 import { ConfettiCanvas, ConfettiRef } from './ConfettiCanvas';
 import { CompletionCelebration } from './CompletionCelebration';
+import {
+  PlasmaCard,
+  PlasmaBadge,
+  PlasmaButton,
+  PlasmaInput,
+  PlasmaProgress,
+} from './plasma';
 
 const KonohaLeafWatermark: React.FC<{ className?: string }> = ({ className = '' }) => (
   <svg
@@ -361,12 +368,12 @@ export const AgileBoard: React.FC = () => {
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-slate-500 hidden sm:inline">
+            <PlasmaBadge variant="outline" size="sm" className="hidden sm:inline-flex text-[10px]">
               Drag to Focus
-            </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[var(--bg-inset)] text-slate-300 border border-[var(--border-card)] tabular-nums">
+            </PlasmaBadge>
+            <PlasmaBadge variant="muted" size="sm" mono>
               {backlogTasks.length}
-            </span>
+            </PlasmaBadge>
           </div>
         </div>
 
@@ -416,150 +423,149 @@ export const AgileBoard: React.FC = () => {
                 draggable={true}
                 onDragStart={(e) => handleDragStartFromBacklog(e, task.id)}
                 onDragEnd={handleDragEnd}
-                className={`group relative p-3 rounded-xl bg-[var(--bg-inset)] border transition-all duration-200 cursor-grab active:cursor-grabbing hover:-translate-y-[1px] ${
-                  isBeingDragged
-                    ? 'opacity-35 scale-95 border-dashed border-primary/80 rotate-1 shadow-mint-glow bg-[var(--bg-inset)]/60'
-                    : 'border-[var(--border-card)] hover:border-white/20 hover:shadow-card'
-                }`}
-                title={
-                  focusTask
-                    ? pomodoro.isRunning
-                      ? 'Slot locked: Active timer running in In Focus'
-                      : 'Slot occupied: Complete or return active task to Backlog first'
-                    : 'Drag into In Focus to start work'
-                }
+                className="cursor-grab active:cursor-grabbing"
               >
-                {/* Title & Grip / Hover Actions */}
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                    <div className="text-slate-600 group-hover:text-primary transition-colors mt-0.5 shrink-0">
-                      <GripVertical className="w-3.5 h-3.5 stroke-[2]" />
+                <PlasmaCard
+                  elevation={0.2}
+                  radius={14}
+                  className={`group relative p-3 transition-all duration-200 hover:-translate-y-[0.5px] ${
+                    isBeingDragged
+                      ? 'opacity-35 scale-95 border-dashed border-[var(--accent-primary)]/80 rotate-1 shadow-lg'
+                      : 'hover:border-white/20 hover:shadow-card'
+                  }`}
+                  title={
+                    focusTask
+                      ? pomodoro.isRunning
+                        ? 'Slot locked: Active timer running in In Focus'
+                        : 'Slot occupied: Complete or return active task to Backlog first'
+                      : 'Drag into In Focus to start work'
+                  }
+                >
+                  {/* Title & Grip / Hover Actions */}
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="flex items-start gap-1.5 flex-1 min-w-0">
+                      <div className="text-slate-500 group-hover:text-[var(--accent-primary)] transition-colors mt-0.5 shrink-0">
+                        <GripVertical className="w-3.5 h-3.5 stroke-[2]" />
+                      </div>
+                      <span className="text-[13px] font-medium text-slate-200 leading-snug group-hover:text-white flex-1 break-words min-w-0">
+                        {task.title}
+                      </span>
                     </div>
-                    <span className="text-[13px] font-medium text-slate-200 leading-snug group-hover:text-white flex-1 break-words min-w-0">
-                      {task.title}
-                    </span>
-                  </div>
 
-                  {/* Actions: Compact "Focus" Pill Button & Delete Trash Icon on Hover */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteTask(task.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer"
-                      title="Delete task"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePromoteClick(task.id);
-                      }}
-                      disabled={focusTask !== null}
-                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-medium transition-all flex items-center gap-1 ${
-                        focusTask !== null
-                          ? 'opacity-30 bg-white/[0.04] text-slate-500 cursor-not-allowed'
-                          : 'cursor-pointer bg-white/[0.06] hover:bg-primary text-slate-300 hover:text-primaryText border border-white/[0.08] hover:border-primary'
-                      }`}
-                      title={
-                        focusTask !== null
-                          ? pomodoro.isRunning
-                            ? 'Focus timer running — complete current task first'
-                            : 'Focus slot occupied — complete current task first'
-                          : 'Focus this task'
-                      }
-                    >
-                      <span>Focus</span>
-                      <ArrowRight className="w-2.5 h-2.5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Meta Row: Tag Capsule, Duration Pill, Pomos Badge */}
-                <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] pl-5">
-                  <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-                    {/* Category Tag Capsule */}
-                    <span
-                      className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${getTagBadgeStyle(
-                        task.tag
-                      )}`}
-                    >
-                      {task.tag || '#dev'}
-                    </span>
-
-                    {/* Duration / Untimed Pill */}
-                    <div className="relative">
-                      <button
-                        type="button"
+                    {/* Actions: Compact "Focus" Pill Button & Delete Trash Icon on Hover */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <PlasmaButton
+                        variant="ghost"
+                        size="icon"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setEditingDurationTaskId(isEditingDuration ? null : task.id);
+                          deleteTask(task.id);
                         }}
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px] border transition-all cursor-pointer ${
-                          isTaskUntimed
-                            ? 'bg-[#A78BFA]/10 hover:bg-[#A78BFA]/20 border-[#A78BFA]/30 text-[#A78BFA]'
-                            : 'bg-white/[0.04] hover:bg-white/[0.09] border border-white/[0.08] text-slate-300 hover:text-primary'
-                        }`}
-                        title="Click to adjust duration or make untimed"
+                        className="opacity-0 group-hover:opacity-100 hover:text-rose-400 hover:bg-rose-500/10 p-1"
+                        title="Delete task"
                       >
-                        {isTaskUntimed ? (
-                          <>
-                            <Coffee className="w-2.5 h-2.5 text-[#A78BFA]" />
-                            <span>Untimed</span>
-                          </>
-                        ) : (
-                          <>
-                            <Timer className="w-2.5 h-2.5 text-primary" />
-                            <span>{taskDurationMin}m</span>
-                          </>
-                        )}
-                      </button>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </PlasmaButton>
 
-                      {/* Duration Quick Selector Popover */}
-                      {isEditingDuration && (
-                        <div
-                          className="absolute left-0 bottom-6 z-40 p-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] shadow-2xl flex items-center gap-1 animate-in fade-in zoom-in-95"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {DURATION_OPTIONS.map((d) => (
-                            <button
-                              key={d}
-                              type="button"
-                              onClick={() => {
-                                updateTaskDuration(task.id, d);
-                                setEditingDurationTaskId(null);
-                              }}
-                              className={`px-2 py-1 rounded-lg text-[10px] font-mono font-semibold transition-colors cursor-pointer ${
-                                taskDurationMin === d
-                                  ? 'bg-primary text-primaryText font-bold'
-                                  : 'text-slate-300 hover:bg-white/10 hover:text-white'
-                              }`}
-                            >
-                              {d === 0 ? 'Untimed (0m)' : `${d}m`}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                      <PlasmaButton
+                        variant="subtle"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePromoteClick(task.id);
+                        }}
+                        disabled={focusTask !== null}
+                        title={
+                          focusTask !== null
+                            ? pomodoro.isRunning
+                              ? 'Focus timer running — complete current task first'
+                              : 'Focus slot occupied — complete current task first'
+                            : 'Focus this task'
+                        }
+                      >
+                        <span>Focus</span>
+                        <ArrowRight className="w-2.5 h-2.5 ml-0.5" />
+                      </PlasmaButton>
                     </div>
                   </div>
 
-                  {/* Estimated Pomodoro Badge */}
-                  <div className="flex items-center gap-1 text-[#94A3B8] font-mono text-[11px]">
-                    {isTaskUntimed ? (
-                      <span className="text-slate-500 text-[10px]">No Timer</span>
-                    ) : (
-                      <>
-                        <span>🍅</span>
-                        <span className="tabular-nums font-semibold text-slate-300">
-                          {task.pomosEst}
-                        </span>
-                      </>
-                    )}
+                  {/* Meta Row: Tag Capsule, Duration Pill, Pomos Badge */}
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 text-[11px] pl-5">
+                    <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                      {/* Category Tag Capsule */}
+                      <span
+                        className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${getTagBadgeStyle(
+                          task.tag
+                        )}`}
+                      >
+                        {task.tag || '#dev'}
+                      </span>
+
+                      {/* Duration / Untimed Pill */}
+                      <div className="relative">
+                        <PlasmaBadge
+                          variant={isTaskUntimed ? 'accent' : 'muted'}
+                          size="sm"
+                          mono
+                          interactive
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingDurationTaskId(isEditingDuration ? null : task.id);
+                          }}
+                          title="Click to adjust duration or make untimed"
+                        >
+                          {isTaskUntimed ? (
+                            <>
+                              <Coffee className="w-2.5 h-2.5" />
+                              <span>Untimed</span>
+                            </>
+                          ) : (
+                            <>
+                              <Timer className="w-2.5 h-2.5 text-[var(--accent-primary)]" />
+                              <span>{taskDurationMin}m</span>
+                            </>
+                          )}
+                        </PlasmaBadge>
+
+                        {/* Duration Quick Selector Popover */}
+                        {isEditingDuration && (
+                          <div
+                            className="absolute left-0 bottom-6 z-40 p-1.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] shadow-2xl flex items-center gap-1 animate-in fade-in zoom-in-95"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {DURATION_OPTIONS.map((d) => (
+                              <PlasmaButton
+                                key={d}
+                                size="sm"
+                                variant={taskDurationMin === d ? 'primary' : 'ghost'}
+                                onClick={() => {
+                                  updateTaskDuration(task.id, d);
+                                  setEditingDurationTaskId(null);
+                                }}
+                              >
+                                {d === 0 ? 'Untimed (0m)' : `${d}m`}
+                              </PlasmaButton>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Estimated Pomodoro Badge */}
+                    <PlasmaBadge variant="muted" size="sm" mono>
+                      {isTaskUntimed ? (
+                        <span className="text-slate-500 text-[10px]">No Timer</span>
+                      ) : (
+                        <>
+                          <span>🍅</span>
+                          <span className="tabular-nums font-semibold text-slate-300">
+                            {task.pomosEst}
+                          </span>
+                        </>
+                      )}
+                    </PlasmaBadge>
                   </div>
-                </div>
+                </PlasmaCard>
               </div>
             );
           })}
@@ -568,14 +574,13 @@ export const AgileBoard: React.FC = () => {
           {isAddingTask && (
             <form
               onSubmit={handleCreateTask}
-              className="p-3 rounded-xl bg-[var(--bg-inset)] border border-primary/40 space-y-2.5 text-xs shadow-mint-glow animate-in fade-in"
+              className="p-3 rounded-xl bg-[var(--bg-inset)] border border-[var(--accent-primary)]/40 space-y-2.5 text-xs shadow-mint-glow animate-in fade-in"
             >
-              <input
-                type="text"
+              <PlasmaInput
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
-                placeholder="Add task to backlog..."
-                className="w-full bg-[var(--bg-card)] px-3 py-1.5 rounded-lg text-white border border-white/15 placeholder-slate-500 focus:outline-none focus:border-primary text-[12px]"
+                onEnter={handleCreateTask as any}
+                placeholder="Add task to backlog (press Enter)..."
                 autoFocus
               />
 
@@ -598,7 +603,7 @@ export const AgileBoard: React.FC = () => {
                     {taskDuration === 0 ? (
                       <Coffee className="w-3 h-3 text-[var(--accent-audio)] shrink-0" />
                     ) : (
-                      <Timer className="w-3 h-3 text-primary shrink-0" />
+                      <Timer className="w-3 h-3 text-[var(--accent-primary)] shrink-0" />
                     )}
                     <select
                       value={taskDuration}
@@ -634,36 +639,36 @@ export const AgileBoard: React.FC = () => {
 
                 {/* Actions Group: Add & Cancel */}
                 <div className="flex items-center gap-1.5 ml-auto shrink-0">
-                  <button
-                    type="submit"
-                    className="px-3.5 py-1 bg-primary hover:brightness-110 active:scale-95 text-primaryText rounded-full text-[11px] font-bold shadow-mint-btn transition-all cursor-pointer"
-                  >
+                  <PlasmaButton type="submit" variant="primary" size="sm">
                     Add
-                  </button>
-                  <button
+                  </PlasmaButton>
+                  <PlasmaButton
                     type="button"
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setIsAddingTask(false)}
-                    className="w-6 h-6 rounded-full hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center text-[12px] transition-colors cursor-pointer"
                     title="Cancel"
                   >
                     ✕
-                  </button>
+                  </PlasmaButton>
                 </div>
               </div>
             </form>
           )}
         </div>
 
-        {/* Bottom Inline Add Task Bar: bg-inset background, 1px border. */}
+        {/* Bottom Inline Add Task Bar */}
         {!isAddingTask && (
           <div className="mt-3 pt-2">
-            <button
+            <PlasmaButton
+              variant="secondary"
+              size="md"
               onClick={() => setIsAddingTask(true)}
-              className="flex items-center justify-center gap-1.5 w-full py-2 px-3 rounded-xl bg-[var(--bg-inset)] border border-[var(--border-card)] hover:border-primary/40 text-[#94A3B8] hover:text-primary text-[11.5px] font-medium transition-all cursor-pointer shadow-xs"
+              className="w-full justify-center text-[11.5px]"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>Add Task</span>
-            </button>
+            </PlasmaButton>
           </div>
         )}
       </section>
@@ -712,15 +717,13 @@ export const AgileBoard: React.FC = () => {
             <span className="text-[10px] font-mono text-[#94A3B8]">
               {focusTask ? (pomodoro.isRunning ? 'Timer Active' : 'Slot Occupied') : 'Drop Target'}
             </span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border tabular-nums ${
-                focusTask
-                  ? 'bg-primary/15 text-primary border-primary/30'
-                  : 'bg-white/[0.05] text-slate-400 border-white/10'
-              }`}
+            <PlasmaBadge
+              variant={focusTask ? 'primary' : 'muted'}
+              size="sm"
+              mono
             >
               {focusTask ? '1 ACTIVE' : '0 ACTIVE'}
-            </span>
+            </PlasmaBadge>
           </div>
         </div>
 
@@ -758,184 +761,191 @@ export const AgileBoard: React.FC = () => {
             draggable={true}
             onDragStart={(e) => handleDragStartFromFocus(e, focusTask.id)}
             onDragEnd={handleDragEnd}
-            className={`flex-1 flex flex-col justify-between bg-[var(--bg-inset)]/95 rounded-xl p-4 border border-[var(--border-card)] shadow-lg relative z-10 transition-all duration-300 ${
-              justDroppedId === focusTask.id ? 'animate-drop-glow animate-card-enter' : ''
-            } ${draggedTaskId === focusTask.id ? 'opacity-40 scale-95 border-dashed border-[var(--accent-audio)]' : ''}`}
+            className="flex-1 flex flex-col min-h-0 cursor-grab active:cursor-grabbing"
             title="Drag back to Backlog to free slot"
           >
-            <div>
-              {/* Category badge pill alongside completed/estimated Pomodoros */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="text-slate-600 hover:text-primary transition-colors cursor-grab active:cursor-grabbing"
-                    title="Drag back to Backlog"
-                  >
-                    <GripVertical className="w-3.5 h-3.5" />
-                  </div>
-                  <span
-                    className={`px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-bold border ${getTagBadgeStyle(
-                      focusTask.tag
-                    )}`}
-                  >
-                    {focusTask.tag || '#dev'}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {focusTask.durationMinutes === 0 ? (
-                    <span className="flex items-center gap-1 text-[10.5px] font-mono text-[var(--accent-audio)] bg-[var(--accent-audio)]/10 border border-[var(--accent-audio)]/25 px-2.5 py-0.5 rounded-full font-semibold">
-                      <Coffee className="w-3 h-3 text-[var(--accent-audio)]" />
-                      <span>Untimed</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 text-[11px] font-mono text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full tabular-nums">
-                      <span>🍅</span>
-                      <span className="font-bold">
-                        {focusTask.pomosDone} / {focusTask.pomosEst}
-                      </span>
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Large semibold title (headline-md) */}
-              <h3 className="text-[18px] md:text-[20px] font-semibold text-white tracking-tight leading-snug mb-3 break-words">
-                {focusTask.title}
-              </h3>
-
-              {/* 6px Progress Track filled with theme primary accent */}
-              <div className="space-y-1.5 mb-4">
-                <div className="flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-slate-400">Sprint Progress</span>
-                  <span className="text-primary font-bold tabular-nums">
-                    {isUntimed ? 'Untimed (Self-Paced)' : `${Math.round(completionRatio * 100)}%`}
-                  </span>
-                </div>
-                <div className="h-[6px] w-full bg-[var(--bg-card)] rounded-full overflow-hidden border border-white/[0.05]">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all duration-300 shadow-[0_0_8px_var(--glow-primary)]"
-                    style={{
-                      width: `${isUntimed ? 100 : Math.max(4, Math.round(completionRatio * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Focus Session Timer Controls Container */}
-              {focusTask.durationMinutes === 0 ? (
-                <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--accent-audio)]/20 flex items-center gap-3.5 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-[var(--accent-audio)]/15 border border-[var(--accent-audio)]/30 flex items-center justify-center shrink-0">
-                    <Coffee className="w-5 h-5 text-[var(--accent-audio)]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-semibold text-white">
-                      Freeform / Personal Task
+            <PlasmaCard
+              elevation={0.65}
+              radius={18}
+              active={true}
+              fuse={false}
+              className={`flex-1 flex flex-col justify-between p-4 relative z-10 transition-all duration-300 ${
+                justDroppedId === focusTask.id ? 'animate-drop-glow animate-card-enter' : ''
+              } ${draggedTaskId === focusTask.id ? 'opacity-40 scale-95 border-dashed border-[var(--accent-secondary)]' : ''}`}
+            >
+              <div>
+                {/* Category badge pill alongside completed/estimated Pomodoros */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="text-slate-500 hover:text-[var(--accent-primary)] transition-colors cursor-grab active:cursor-grabbing"
+                      title="Drag back to Backlog"
+                    >
+                      <GripVertical className="w-3.5 h-3.5" />
                     </div>
-                    <div className="text-[10.5px] text-[#94A3B8] mt-0.5 leading-relaxed">
-                      No Pomodoro timer required. Focus at your pace, then click Complete when done!
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] flex flex-wrap items-center justify-between gap-2 mb-3 relative overflow-hidden">
-                  {isSageTheme && (
-                    <div className="absolute right-0 top-0 bottom-0 w-36 pointer-events-none opacity-15 flex items-center justify-end pr-2 overflow-hidden">
-                      <Flame className="w-20 h-20 text-[#FF6B00] -rotate-12 translate-x-2" />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-3 relative z-10">
-                    <div className="relative flex items-center justify-center">
-                      <span
-                        className={`inline-block w-2.5 h-2.5 rounded-full ${
-                          pomodoro.isRunning
-                            ? 'bg-primary animate-pulse shadow-[0_0_8px_var(--glow-primary)]'
-                            : 'bg-slate-500'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <div className="text-xl font-bold font-mono text-white tabular-nums tracking-tight">
-                        {formattedTime}
-                      </div>
-                      <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-                        {pomodoro.mode === 'focus' ? 'Focus Session' : 'Break'} • Cycle {completedPomos + 1} of {estimatedPomos}
-                      </div>
-                    </div>
+                    <PlasmaBadge
+                      variant="primary"
+                      size="md"
+                      mono
+                      className={getTagBadgeStyle(focusTask.tag)}
+                    >
+                      {focusTask.tag || '#dev'}
+                    </PlasmaBadge>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={toggleTimer}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer active:scale-95 ${
-                        pomodoro.isRunning
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
-                          : 'bg-primary text-primaryText hover:brightness-110 shadow-mint-btn'
-                      }`}
-                      title={pomodoro.isRunning ? 'Pause Timer' : 'Start Timer'}
-                    >
-                      {pomodoro.isRunning ? (
-                        <>
-                          <Pause className="w-3 h-3 fill-current" />
-                          <span>Pause</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-3 h-3 fill-current ml-0.5" />
-                          <span>Start</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={resetTimer}
-                      className="p-1.5 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
-                      title="Reset Timer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                    </button>
+                    {focusTask.durationMinutes === 0 ? (
+                      <PlasmaBadge variant="accent" size="md" mono>
+                        <Coffee className="w-3 h-3 text-[var(--accent-secondary)]" />
+                        <span>Untimed</span>
+                      </PlasmaBadge>
+                    ) : (
+                      <PlasmaBadge variant="primary" size="md" mono>
+                        <span>🍅</span>
+                        <span className="font-bold">
+                          {focusTask.pomosDone} / {focusTask.pomosEst}
+                        </span>
+                      </PlasmaBadge>
+                    )}
                   </div>
                 </div>
-              )}
 
-              {/* Deliverables / Focus Notes Context */}
-              <div className="text-[11px] text-slate-400 bg-[var(--bg-card)]/80 p-3 rounded-xl border border-[var(--border-card)] space-y-1">
-                <div className="flex items-center gap-1.5 text-slate-300 font-semibold mb-1">
-                  <FileText className="w-3.5 h-3.5 text-primary" />
-                  <span>Deliverables &amp; Focus Context:</span>
+                {/* Large semibold title (headline-md) */}
+                <h3 className="text-[18px] md:text-[20px] font-semibold text-white tracking-tight leading-snug mb-3 break-words">
+                  {focusTask.title}
+                </h3>
+
+                {/* Liquid Progress Track */}
+                <div className="space-y-1.5 mb-4">
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-slate-400">Sprint Progress</span>
+                    <span className="text-primary font-bold tabular-nums">
+                      {isUntimed ? 'Untimed (Self-Paced)' : `${Math.round(completionRatio * 100)}%`}
+                    </span>
+                  </div>
+                  <PlasmaProgress
+                    value={isUntimed ? 100 : Math.round(completionRatio * 100)}
+                    size="sm"
+                  />
                 </div>
-                {(focusTask.notes || [
-                  'Glassmorphic dock pill bar with YouTube focus stream',
-                  'Single-window 3-column personal Agile board',
-                  'Local-First IndexedDB offline data privacy',
-                ]).map((note, idx) => (
-                  <p key={idx} className="text-[#94A3B8] pl-5 text-[10.5px]">
-                    • {note}
-                  </p>
-                ))}
+
+                {/* Focus Session Timer Controls Container */}
+                {focusTask.durationMinutes === 0 ? (
+                  <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--accent-secondary)]/20 flex items-center gap-3.5 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-[var(--accent-secondary)]/15 border border-[var(--accent-secondary)]/30 flex items-center justify-center shrink-0">
+                      <Coffee className="w-5 h-5 text-[var(--accent-secondary)]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12px] font-semibold text-white">
+                        Freeform / Personal Task
+                      </div>
+                      <div className="text-[10.5px] text-[#94A3B8] mt-0.5 leading-relaxed">
+                        No Pomodoro timer required. Focus at your pace, then click Complete when done!
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-card)] flex flex-wrap items-center justify-between gap-2 mb-3 relative overflow-hidden">
+                    {isSageTheme && (
+                      <div className="absolute right-0 top-0 bottom-0 w-36 pointer-events-none opacity-15 flex items-center justify-end pr-2 overflow-hidden">
+                        <Flame className="w-20 h-20 text-[#FF6B00] -rotate-12 translate-x-2" />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3 relative z-10">
+                      <div className="relative flex items-center justify-center">
+                        <span
+                          className={`inline-block w-2.5 h-2.5 rounded-full ${
+                            pomodoro.isRunning
+                              ? 'bg-primary animate-pulse shadow-[0_0_8px_var(--glow-primary)]'
+                              : 'bg-slate-500'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <div className="text-xl font-bold font-mono text-white tabular-nums tracking-tight">
+                          {formattedTime}
+                        </div>
+                        <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+                          {pomodoro.mode === 'focus' ? 'Focus Session' : 'Break'} • Cycle {completedPomos + 1} of {estimatedPomos}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 relative z-10">
+                      <PlasmaButton
+                        variant={pomodoro.isRunning ? 'warning' : 'primary'}
+                        size="sm"
+                        onClick={toggleTimer}
+                        title={pomodoro.isRunning ? 'Pause Timer' : 'Start Timer'}
+                      >
+                        {pomodoro.isRunning ? (
+                          <>
+                            <Pause className="w-3 h-3 fill-current" />
+                            <span>Pause</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3 h-3 fill-current ml-0.5" />
+                            <span>Start</span>
+                          </>
+                        )}
+                      </PlasmaButton>
+
+                      <PlasmaButton
+                        variant="ghost"
+                        size="icon"
+                        onClick={resetTimer}
+                        title="Reset Timer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </PlasmaButton>
+                    </div>
+                  </div>
+                )}
+
+                {/* Deliverables / Focus Notes Context */}
+                <div className="text-[11px] text-slate-400 bg-[var(--bg-card)]/80 p-3 rounded-xl border border-[var(--border-card)] space-y-1">
+                  <div className="flex items-center gap-1.5 text-slate-300 font-semibold mb-1">
+                    <FileText className="w-3.5 h-3.5 text-primary" />
+                    <span>Deliverables &amp; Focus Context:</span>
+                  </div>
+                  {(focusTask.notes || [
+                    'Glassmorphic dock pill bar with YouTube focus stream',
+                    'Single-window 3-column personal Agile board',
+                    'Local-First IndexedDB offline data privacy',
+                  ]).map((note, idx) => (
+                    <p key={idx} className="text-[#94A3B8] pl-5 text-[10.5px]">
+                      • {note}
+                    </p>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Bottom Actions: Theme Accent "Complete Task" & Ghost "Return to Backlog" */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-[var(--border-card)]">
-              <button
-                onClick={() => setTaskStatus(focusTask.id, 'done')}
-                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-primary hover:brightness-110 active:scale-[0.98] text-primaryText font-semibold text-[11.5px] sm:text-[12px] shadow-mint-btn transition-all cursor-pointer"
-                title="Complete task and reset timer"
-              >
-                <Check className="w-4 h-4 stroke-[3]" />
-                <span>Complete Task</span>
-              </button>
+              {/* Bottom Actions: Theme Accent "Complete Task" & Ghost "Return to Backlog" */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-[var(--border-card)]">
+                <PlasmaButton
+                  variant="primary"
+                  size="lg"
+                  onClick={() => setTaskStatus(focusTask.id, 'done')}
+                  className="w-full justify-center text-[11.5px] sm:text-[12px]"
+                  title="Complete task and reset timer"
+                >
+                  <Check className="w-4 h-4 stroke-[3]" />
+                  <span>Complete Task</span>
+                </PlasmaButton>
 
-              <button
-                onClick={() => setTaskStatus(focusTask.id, 'backlog')}
-                className="flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-[var(--bg-inset)] hover:bg-white/[0.08] active:scale-[0.98] border border-[var(--border-card)] text-slate-300 hover:text-primary transition-all cursor-pointer"
-                title="Return task to Backlog"
-              >
-                <ArrowLeft className="w-3.5 h-3.5 stroke-[2]" />
-                <span>Return to Backlog</span>
-              </button>
-            </div>
+                <PlasmaButton
+                  variant="secondary"
+                  size="lg"
+                  onClick={() => setTaskStatus(focusTask.id, 'backlog')}
+                  className="w-full justify-center text-[11.5px] sm:text-[12px]"
+                  title="Return task to Backlog"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 stroke-[2]" />
+                  <span>Return to Backlog</span>
+                </PlasmaButton>
+              </div>
+            </PlasmaCard>
           </div>
         ) : isAllDone ? (
           <CompletionCelebration
@@ -970,9 +980,9 @@ export const AgileBoard: React.FC = () => {
               Done Today
             </h2>
           </div>
-          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[var(--accent-secondary)]/15 text-[var(--accent-secondary)] border border-[var(--accent-secondary)]/30 tabular-nums">
+          <PlasmaBadge variant="accent" size="sm" mono>
             {doneTasks.length}
-          </span>
+          </PlasmaBadge>
         </div>
 
         {/* Completed Cards List */}
@@ -980,9 +990,11 @@ export const AgileBoard: React.FC = () => {
           {doneTasks.map((task) => {
             const isTaskUntimed = task.durationMinutes === 0;
             return (
-              <div
+              <PlasmaCard
                 key={task.id}
-                className="group p-2.5 rounded-xl bg-[var(--bg-inset)]/60 border border-[var(--border-card)] hover:border-white/15 hover:-translate-y-[1px] transition-all duration-200"
+                elevation={0.15}
+                radius={12}
+                className="group p-2.5 hover:border-white/15 hover:-translate-y-[0.5px] transition-all duration-200"
               >
                 <div className="flex items-start gap-2.5">
                   <div className="mt-0.5 w-4 h-4 rounded-full bg-[var(--accent-secondary)]/20 text-[var(--accent-secondary)] flex items-center justify-center shrink-0">
@@ -1001,19 +1013,21 @@ export const AgileBoard: React.FC = () => {
                             : `✓ ${task.pomosDone || 1} Pomos`}
                         </span>
                         {/* Compact "Undo" button calling setTaskStatus(task.id, 'backlog') */}
-                        <button
+                        <PlasmaButton
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setTaskStatus(task.id, 'backlog')}
-                          className="opacity-0 group-hover:opacity-100 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 hover:text-white bg-white/[0.06] hover:bg-white/15 transition-all cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 py-0.5 px-1.5 text-[10px]"
                           title="Return to backlog"
                         >
-                          <Undo2 className="w-2.5 h-2.5" />
+                          <Undo2 className="w-2.5 h-2.5 mr-1" />
                           <span>Undo</span>
-                        </button>
+                        </PlasmaButton>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </PlasmaCard>
             );
           })}
         </div>

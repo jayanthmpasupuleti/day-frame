@@ -10,6 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@cruxgarden/plasma-ui": "^0.7.0",
     "@supabase/supabase-js": "^2.117.1",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
