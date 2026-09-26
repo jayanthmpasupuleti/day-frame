@@ -104,7 +104,7 @@ export const App: React.FC = () => {
       rimColor={plasmaTheme.rimColor}
       stretch={1.8}
       viscosity={0.35}
-      flow={0.4}
+      flow={0}
       blend={45}
       tension={0.15}
       pointerDrop={true}

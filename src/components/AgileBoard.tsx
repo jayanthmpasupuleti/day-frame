@@ -22,6 +22,7 @@ import {
 import { useDayframeStore } from '../store/useDayframeStore';
 import { ConfettiCanvas, ConfettiRef } from './ConfettiCanvas';
 import { CompletionCelebration } from './CompletionCelebration';
+import { Plasma, usePlasmaRuntime } from '@cruxgarden/plasma-ui';
 import type { Offset } from '@cruxgarden/plasma-ui';
 import {
   PlasmaCard,
@@ -90,8 +91,13 @@ export const AgileBoard: React.FC = () => {
   const [taskPomos, setTaskPomos] = useState(2);
   const [taskDuration, setTaskDuration] = useState(25);
 
+  // Plasma Runtime for dynamic shockwave and fluid haptics
+  const plasmaRuntime = usePlasmaRuntime();
+
   // Plasma Liquid Drag and Drop States & Refs
   const [activeDraggingId, setActiveDraggingId] = useState<string | null>(null);
+  const [isHoveringFocus, setIsHoveringFocus] = useState(false);
+  const [isHoveringBacklog, setIsHoveringBacklog] = useState(false);
   const [cardOffsets, setCardOffsets] = useState<Record<string, { x: number; y: number }>>({});
   const [focusCardOffset, setFocusCardOffset] = useState<{ x: number; y: number } | undefined>(undefined);
   const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
@@ -101,6 +107,41 @@ export const AgileBoard: React.FC = () => {
   const focusColRef = useRef<HTMLElement | null>(null);
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const focusCardRef = useRef<HTMLDivElement | null>(null);
+
+  // Real-time pointer tracking during drag to light up target zones
+  useEffect(() => {
+    if (!activeDraggingId) {
+      setIsHoveringFocus(false);
+      setIsHoveringBacklog(false);
+      return;
+    }
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (focusColRef.current) {
+        const rect = focusColRef.current.getBoundingClientRect();
+        const over =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+        setIsHoveringFocus(over);
+      }
+      if (backlogColRef.current) {
+        const rect = backlogColRef.current.getBoundingClientRect();
+        const over =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+        setIsHoveringBacklog(over);
+      }
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+    };
+  }, [activeDraggingId]);
 
   // Duration editor popover state for backlog cards
   const [editingDurationTaskId, setEditingDurationTaskId] = useState<string | null>(null);
@@ -204,12 +245,14 @@ export const AgileBoard: React.FC = () => {
     const focusColEl = focusColRef.current;
 
     let isDroppedInFocus = false;
+    let cardCenterX = window.innerWidth / 2;
+    let cardCenterY = window.innerHeight / 2;
 
     if (cardEl && focusColEl) {
       const cardRect = cardEl.getBoundingClientRect();
       const focusRect = focusColEl.getBoundingClientRect();
-      const cardCenterX = cardRect.left + cardRect.width / 2;
-      const cardCenterY = cardRect.top + cardRect.height / 2;
+      cardCenterX = cardRect.left + cardRect.width / 2;
+      cardCenterY = cardRect.top + cardRect.height / 2;
 
       isDroppedInFocus =
         cardCenterX >= focusRect.left &&
@@ -233,10 +276,16 @@ export const AgileBoard: React.FC = () => {
           setCardOffsets((prev) => ({ ...prev, [taskId]: { x: 0, y: 0 } }));
         });
       } else {
+        // Trigger liquid shockwave ripple on drop!
+        try {
+          plasmaRuntime.pulse(cardCenterX, cardCenterY, 2.2);
+          plasmaRuntime.bump(1.2);
+        } catch {}
+
         // Promote to In Focus!
         setTaskStatus(taskId, 'in_focus');
         setJustDroppedId(taskId);
-        setTimeout(() => setJustDroppedId(null), 700);
+        setTimeout(() => setJustDroppedId(null), 900);
         setCardOffsets((prev) => {
           const next = { ...prev };
           delete next[taskId];
@@ -265,12 +314,14 @@ export const AgileBoard: React.FC = () => {
     const backlogColEl = backlogColRef.current;
 
     let isDroppedInBacklog = false;
+    let cardCenterX = window.innerWidth / 2;
+    let cardCenterY = window.innerHeight / 2;
 
     if (cardEl && backlogColEl) {
       const cardRect = cardEl.getBoundingClientRect();
       const backlogRect = backlogColEl.getBoundingClientRect();
-      const cardCenterX = cardRect.left + cardRect.width / 2;
-      const cardCenterY = cardRect.top + cardRect.height / 2;
+      cardCenterX = cardRect.left + cardRect.width / 2;
+      cardCenterY = cardRect.top + cardRect.height / 2;
 
       isDroppedInBacklog =
         cardCenterX >= backlogRect.left &&
@@ -282,6 +333,10 @@ export const AgileBoard: React.FC = () => {
     }
 
     if (isDroppedInBacklog) {
+      try {
+        plasmaRuntime.pulse(cardCenterX, cardCenterY, 1.8);
+        plasmaRuntime.bump(0.8);
+      } catch {}
       setTaskStatus(focusTask.id, 'backlog');
       setFocusCardOffset(undefined);
     } else {
@@ -349,13 +404,26 @@ export const AgileBoard: React.FC = () => {
         )}
 
         {/* 3 Columns Grid */}
-        <div className="flex-1 grid grid-cols-12 gap-3 sm:gap-4 md:gap-5 min-h-0 overflow-hidden">
+        <div className="flex-1 grid grid-cols-12 gap-3 sm:gap-4 md:gap-5 min-h-0">
           {/* ========================================================================= */}
           {/* COLUMN 1: TODAY'S BACKLOG (Col span 4)                                   */}
           {/* ========================================================================= */}
-          <section
-            ref={backlogColRef}
-            className="col-span-4 flex flex-col bg-[var(--bg-card)]/35 backdrop-blur-sm rounded-xl border border-[var(--border-card)]/60 p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative overflow-hidden"
+          <Plasma
+            ref={backlogColRef as any}
+            as="section"
+            elevation={0.25}
+            radius={18}
+            lean={6}
+            fuse={false}
+            className={`col-span-4 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[18px] border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative ${
+              activeDraggingId
+                ? 'z-50 overflow-visible'
+                : 'z-10 overflow-hidden'
+            } ${
+              isHoveringBacklog
+                ? 'border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-[0_0_25px_var(--glow-secondary,rgba(56,189,248,0.3))]'
+                : 'border-[var(--border-card)]/50'
+            }`}
           >
             {isSageTheme && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] overflow-hidden">
@@ -381,7 +449,7 @@ export const AgileBoard: React.FC = () => {
             </div>
 
             {/* Task Cards List */}
-            <div className="flex-1 space-y-2.5 overflow-y-auto pr-1">
+            <div className={`flex-1 space-y-2.5 pr-1 ${activeDraggingId ? 'overflow-visible' : 'overflow-y-auto'}`}>
               {isAllDone && (
                 <div className="py-7 px-4 rounded-xl bg-[var(--bg-inset)]/40 border border-dashed border-primary/25 flex flex-col items-center justify-center text-center animate-card-enter my-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary mb-2 shadow-mint-glow">
@@ -419,7 +487,7 @@ export const AgileBoard: React.FC = () => {
                       if (el) cardRefs.current.set(task.id, el);
                       else cardRefs.current.delete(task.id);
                     }}
-                    elevation={isBeingDragged ? 0.7 : 0.25}
+                    elevation={isBeingDragged ? 0.9 : 0.25}
                     radius={14}
                     draggable={true}
                     snap={false}
@@ -430,8 +498,8 @@ export const AgileBoard: React.FC = () => {
                     onDragEnd={(target) => handleBacklogCardDragEnd(task.id, target)}
                     className={`group relative p-3 transition-colors duration-150 ${
                       isBeingDragged
-                        ? 'z-30 border-[var(--accent-primary)] ring-1 ring-[var(--accent-primary)]/50 shadow-2xl'
-                        : 'hover:border-white/25 hover:shadow-card'
+                        ? 'z-50 border-[var(--accent-primary)] ring-2 ring-[var(--accent-primary)]/70 shadow-[0_0_28px_var(--glow-primary)] cursor-grabbing'
+                        : 'hover:border-white/25 hover:shadow-card cursor-grab'
                     }`}
                     title={
                       focusTask
@@ -670,20 +738,29 @@ export const AgileBoard: React.FC = () => {
             </PlasmaButton>
           </div>
         )}
-      </section>
+      </Plasma>
 
       {/* ========================================================================= */}
       {/* COLUMN 2: IN FOCUS (HERO ACTIVE CARD) (Col span 5)                       */}
       {/* ========================================================================= */}
-      <section
-        ref={focusColRef}
-        className={`col-span-5 flex flex-col bg-[var(--bg-card)]/35 backdrop-blur-sm rounded-xl border p-3 sm:p-4 relative overflow-hidden min-h-0 transition-all duration-200 ${
+      <Plasma
+        ref={focusColRef as any}
+        as="section"
+        elevation={0.35}
+        radius={20}
+        lean={8}
+        fuse={false}
+        className={`col-span-5 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[20px] border p-3 sm:p-4 relative min-h-0 transition-all duration-200 ${
           isSageTheme && focusTask !== null
             ? 'chakra-flame-aura border-[#FF6B00]'
+            : isHoveringFocus && focusTask === null
+            ? 'border-[var(--accent-primary)] ring-2 ring-[var(--accent-primary)]/50 shadow-[0_0_35px_var(--glow-primary)] scale-[1.008]'
+            : isHoveringFocus && focusTask !== null
+            ? 'border-amber-500/70 ring-2 ring-amber-500/40 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
             : focusTask !== null
-            ? 'border-primary/40 shadow-[0_0_24px_var(--glow-primary-subtle)]'
-            : 'border-[var(--border-card)]/60'
-        }`}
+            ? 'border-[var(--accent-primary)]/40 shadow-[0_0_24px_var(--glow-primary-subtle)]'
+            : 'border-[var(--border-card)]/50'
+        } ${activeDraggingId === focusTask?.id ? 'z-50 overflow-visible' : 'z-10 overflow-hidden'}`}
       >
         {isSageTheme && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] overflow-hidden">
@@ -720,6 +797,13 @@ export const AgileBoard: React.FC = () => {
           </div>
         </div>
 
+        {/* Real-time Hover Alert when slot is already occupied */}
+        {isHoveringFocus && focusTask !== null && (
+          <div className="mb-3 py-2 px-3 rounded-xl border border-amber-500/60 bg-amber-500/20 text-amber-200 text-[11.5px] font-medium flex items-center justify-center gap-2 animate-pulse relative z-30 shadow-lg">
+            <span>⚠️ Slot Occupied: Complete or return current task to Backlog first</span>
+          </div>
+        )}
+
         {/* Blocked Alert Banner */}
         {blockedAlert && (
           <div className="mb-3 py-2 px-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11.5px] flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-1 relative z-20">
@@ -732,7 +816,7 @@ export const AgileBoard: React.FC = () => {
         {focusTask ? (
           <PlasmaCard
             ref={focusCardRef}
-            elevation={activeDraggingId === focusTask.id ? 0.75 : 0.45}
+            elevation={activeDraggingId === focusTask.id ? 0.85 : 0.45}
             radius={18}
             active={true}
             draggable={true}
@@ -743,11 +827,11 @@ export const AgileBoard: React.FC = () => {
             onDragStart={handleFocusCardDragStart}
             onDragEnd={handleFocusCardDragEnd}
             className={`flex-1 flex flex-col justify-between p-4 relative z-10 transition-colors duration-200 ${
-              justDroppedId === focusTask.id ? 'animate-drop-glow animate-card-enter' : ''
+              justDroppedId === focusTask.id ? 'animate-liquid-drop animate-drop-glow' : ''
             } ${
               activeDraggingId === focusTask.id
-                ? 'z-30 border-dashed border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-2xl'
-                : ''
+                ? 'z-50 border-dashed border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-2xl cursor-grabbing'
+                : 'cursor-grab'
             }`}
             title="Drag left toward Backlog to return task"
           >
@@ -924,6 +1008,14 @@ export const AgileBoard: React.FC = () => {
                 </PlasmaButton>
               </div>
             </PlasmaCard>
+        ) : isHoveringFocus && focusTask === null ? (
+          <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-[var(--accent-primary)] rounded-2xl p-6 sm:p-8 text-center text-primary bg-[var(--accent-primary)]/10 shadow-[0_0_35px_var(--glow-primary)] animate-dropzone relative z-20">
+            <Sparkles className="w-10 h-10 text-[var(--accent-primary)] mb-3 animate-bounce" />
+            <p className="text-white font-bold text-base">Release to Drop into Focus!</p>
+            <p className="text-[var(--accent-primary)] text-xs mt-1 font-mono font-medium">
+              Start focus session immediately
+            </p>
+          </div>
         ) : isAllDone ? (
           <CompletionCelebration
             doneCount={doneTasks.length}
@@ -943,12 +1035,19 @@ export const AgileBoard: React.FC = () => {
             </p>
           </div>
         )}
-      </section>
+      </Plasma>
 
       {/* ========================================================================= */}
       {/* COLUMN 3: DONE TODAY (Col span 3)                                         */}
       {/* ========================================================================= */}
-      <section className="col-span-3 flex flex-col bg-[var(--bg-card)]/35 backdrop-blur-sm rounded-xl border border-[var(--border-card)]/60 p-3 sm:p-4 shadow-card min-h-0">
+      <Plasma
+        as="section"
+        elevation={0.25}
+        radius={18}
+        lean={6}
+        fuse={false}
+        className="col-span-3 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[18px] border border-[var(--border-card)]/50 p-3 sm:p-4 shadow-card min-h-0 relative z-10 overflow-hidden"
+      >
         {/* Header: Title and count badge */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-2">
@@ -1008,7 +1107,7 @@ export const AgileBoard: React.FC = () => {
             );
           })}
         </div>
-      </section>
+      </Plasma>
     </div>
   </main>
 </>

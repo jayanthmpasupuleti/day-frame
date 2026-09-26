@@ -10,7 +10,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
-import { Plasma, PlasmaBadge, PlasmaButton } from './plasma';
+import { PlasmaBadge, PlasmaButton } from './plasma';
 
 export const TitleBar: React.FC = () => {
   const {
@@ -67,11 +67,7 @@ export const TitleBar: React.FC = () => {
   };
 
   return (
-    <Plasma
-      as="header"
-      fuse={false}
-      elevation={0.15}
-      radius={0}
+    <header
       data-tauri-drag-region
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
@@ -232,7 +228,7 @@ export const TitleBar: React.FC = () => {
           )}
         </PlasmaButton>
       </div>
-    </Plasma>
+    </header>
   );
 };
 

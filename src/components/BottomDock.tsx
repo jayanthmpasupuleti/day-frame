@@ -18,7 +18,6 @@ import {
 import { useDayframeStore } from '../store/useDayframeStore';
 import type { PomodoroMode, AudioTrack } from '../types';
 import {
-  Plasma,
   PlasmaButton,
   PlasmaBadge,
   PlasmaSlider,
@@ -115,11 +114,7 @@ export const BottomDock: React.FC = () => {
 
   return (
     <>
-      <Plasma
-        as="footer"
-        fuse={false}
-        elevation={0.3}
-        radius={0}
+      <footer
         className="h-[52px] min-h-[52px] px-5 border-t border-[var(--border-card)] bg-[var(--bg-card)]/95 backdrop-blur-2xl flex items-center justify-between relative z-30 select-none transition-colors duration-300"
       >
         {/* ===================================================================== */}
@@ -459,7 +454,7 @@ export const BottomDock: React.FC = () => {
             </>
           )}
         </div>
-      </Plasma>
+      </footer>
 
       {/* ===================================================================== */}
       {/* Custom YouTube Track Modal Dialog using PlasmaDialog                   */}
