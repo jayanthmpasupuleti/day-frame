@@ -7,17 +7,41 @@ import { AudioEngine } from './components/AudioEngine';
 import { TrayPopover } from './components/TrayPopover';
 import { ThemeModal } from './components/ThemeModal';
 import { AuthModal } from './components/AuthModal';
+import { AuthBridgePage } from './components/AuthBridgePage';
 import { useTimerEngine } from './hooks/useTimerEngine';
 import { useCrossWindowSync } from './hooks/useCrossWindowSync';
 import { useTraySync } from './hooks/useTraySync';
 import { useSyncEngine } from './hooks/useSyncEngine';
 import { useDayframeStore } from './store/useDayframeStore';
+import { isTauriApp } from './utils/platform';
 
 if (typeof window !== 'undefined') {
   (window as any).__DAYFRAME_STORE__ = useDayframeStore;
 }
 
 export const App: React.FC = () => {
+  // If running in an external web browser and receiving an authentication callback/handoff,
+  // render the dedicated AuthBridgePage to transfer credentials to the desktop app
+  const [isAuthBridge] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (isTauriApp()) return false;
+    const url = window.location.href;
+    return (
+      url.includes('auth_handoff=') ||
+      url.includes('access_token=') ||
+      url.includes('code=') ||
+      url.includes('error=') ||
+      url.includes('error_description=') ||
+      url.includes('type=recovery') ||
+      url.includes('type=magiclink') ||
+      url.includes('type=signup')
+    );
+  });
+
+  if (isAuthBridge) {
+    return <AuthBridgePage />;
+  }
+
   const [isPopover, setIsPopover] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
