@@ -11,7 +11,6 @@ import {
   Clock,
   Sparkles,
   GripVertical,
-  Lock,
   Timer,
   AlertTriangle,
   Coffee,
@@ -23,6 +22,7 @@ import {
 import { useDayframeStore } from '../store/useDayframeStore';
 import { ConfettiCanvas, ConfettiRef } from './ConfettiCanvas';
 import { CompletionCelebration } from './CompletionCelebration';
+import type { Offset } from '@cruxgarden/plasma-ui';
 import {
   PlasmaCard,
   PlasmaBadge,
@@ -90,13 +90,17 @@ export const AgileBoard: React.FC = () => {
   const [taskPomos, setTaskPomos] = useState(2);
   const [taskDuration, setTaskDuration] = useState(25);
 
-  // Drag and Drop States
-  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
-  const [dragSource, setDragSource] = useState<'backlog' | 'in_focus' | null>(null);
-  const [isDragOverFocus, setIsDragOverFocus] = useState(false);
-  const [isDragOverBacklog, setIsDragOverBacklog] = useState(false);
+  // Plasma Liquid Drag and Drop States & Refs
+  const [activeDraggingId, setActiveDraggingId] = useState<string | null>(null);
+  const [cardOffsets, setCardOffsets] = useState<Record<string, { x: number; y: number }>>({});
+  const [focusCardOffset, setFocusCardOffset] = useState<{ x: number; y: number } | undefined>(undefined);
   const [justDroppedId, setJustDroppedId] = useState<string | null>(null);
   const [blockedAlert, setBlockedAlert] = useState<string | null>(null);
+
+  const backlogColRef = useRef<HTMLElement | null>(null);
+  const focusColRef = useRef<HTMLElement | null>(null);
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const focusCardRef = useRef<HTMLDivElement | null>(null);
 
   // Duration editor popover state for backlog cards
   const [editingDurationTaskId, setEditingDurationTaskId] = useState<string | null>(null);
@@ -189,99 +193,104 @@ export const AgileBoard: React.FC = () => {
     setIsAddingTask(false);
   };
 
-  // --- Drag and Drop Handlers ---
-  const handleDragStartFromBacklog = (e: React.DragEvent, taskId: string) => {
-    setDraggedTaskId(taskId);
-    setDragSource('backlog');
-    e.dataTransfer.setData('text/plain', taskId);
-    e.dataTransfer.effectAllowed = 'move';
+  // --- Plasma Drag Handlers for Backlog Cards ---
+  const handleBacklogCardDragStart = (taskId: string) => {
+    setActiveDraggingId(taskId);
   };
 
-  const handleDragStartFromFocus = (e: React.DragEvent, taskId: string) => {
-    setDraggedTaskId(taskId);
-    setDragSource('in_focus');
-    e.dataTransfer.setData('text/plain', taskId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+  const handleBacklogCardDragEnd = (taskId: string, target: Offset) => {
+    setActiveDraggingId(null);
+    const cardEl = cardRefs.current.get(taskId);
+    const focusColEl = focusColRef.current;
 
-  const handleDragEnd = () => {
-    setDraggedTaskId(null);
-    setDragSource(null);
-    setIsDragOverFocus(false);
-    setIsDragOverBacklog(false);
-  };
+    let isDroppedInFocus = false;
 
-  // Drop onto IN FOCUS Column
-  const handleDragOverFocus = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dragSource === 'backlog') {
+    if (cardEl && focusColEl) {
+      const cardRect = cardEl.getBoundingClientRect();
+      const focusRect = focusColEl.getBoundingClientRect();
+      const cardCenterX = cardRect.left + cardRect.width / 2;
+      const cardCenterY = cardRect.top + cardRect.height / 2;
+
+      isDroppedInFocus =
+        cardCenterX >= focusRect.left &&
+        cardCenterX <= focusRect.right &&
+        cardCenterY >= focusRect.top &&
+        cardCenterY <= focusRect.bottom;
+    } else if (target.x > 140) {
+      isDroppedInFocus = true;
+    }
+
+    if (isDroppedInFocus) {
       if (focusTask !== null) {
-        e.dataTransfer.dropEffect = 'none';
+        triggerBlockedAlert(
+          pomodoro.isRunning
+            ? 'Active Session in Progress: Complete or return the active task to Backlog before starting a new one!'
+            : 'Slot Occupied: Complete or return the active task to Backlog before starting a new one!'
+        );
+        // Spring smoothly back to origin in Backlog
+        setCardOffsets((prev) => ({ ...prev, [taskId]: { x: target.x, y: target.y } }));
+        requestAnimationFrame(() => {
+          setCardOffsets((prev) => ({ ...prev, [taskId]: { x: 0, y: 0 } }));
+        });
       } else {
-        e.dataTransfer.dropEffect = 'move';
+        // Promote to In Focus!
+        setTaskStatus(taskId, 'in_focus');
+        setJustDroppedId(taskId);
+        setTimeout(() => setJustDroppedId(null), 700);
+        setCardOffsets((prev) => {
+          const next = { ...prev };
+          delete next[taskId];
+          return next;
+        });
       }
-      if (!isDragOverFocus) {
-        setIsDragOverFocus(true);
-      }
+    } else {
+      // Released outside focus: liquid spring back to its backlog slot
+      setCardOffsets((prev) => ({ ...prev, [taskId]: { x: target.x, y: target.y } }));
+      requestAnimationFrame(() => {
+        setCardOffsets((prev) => ({ ...prev, [taskId]: { x: 0, y: 0 } }));
+      });
     }
   };
 
-  const handleDragLeaveFocus = (e: React.DragEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragOverFocus(false);
-    }
+  // --- Plasma Drag Handlers for Hero In-Focus Card ---
+  const handleFocusCardDragStart = () => {
+    if (focusTask) setActiveDraggingId(focusTask.id);
   };
 
-  const handleDropOnFocus = (e: React.DragEvent) => {
-    e.preventDefault();
-    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+  const handleFocusCardDragEnd = (target: Offset) => {
+    setActiveDraggingId(null);
+    if (!focusTask) return;
 
-    if (focusTask !== null) {
-      triggerBlockedAlert(
-        pomodoro.isRunning
-          ? 'Active Session in Progress: Complete or return the active task to Backlog before starting a new one!'
-          : 'Slot Occupied: Complete or return the active task to Backlog before starting a new one!'
-      );
-      setIsDragOverFocus(false);
-      setDraggedTaskId(null);
-      setDragSource(null);
-      return;
+    const cardEl = focusCardRef.current;
+    const backlogColEl = backlogColRef.current;
+
+    let isDroppedInBacklog = false;
+
+    if (cardEl && backlogColEl) {
+      const cardRect = cardEl.getBoundingClientRect();
+      const backlogRect = backlogColEl.getBoundingClientRect();
+      const cardCenterX = cardRect.left + cardRect.width / 2;
+      const cardCenterY = cardRect.top + cardRect.height / 2;
+
+      isDroppedInBacklog =
+        cardCenterX >= backlogRect.left &&
+        cardCenterX <= backlogRect.right &&
+        cardCenterY >= backlogRect.top &&
+        cardCenterY <= backlogRect.bottom;
+    } else if (target.x < -140) {
+      isDroppedInBacklog = true;
     }
 
-    if (taskId && dragSource === 'backlog') {
-      setTaskStatus(taskId, 'in_focus');
-      setJustDroppedId(taskId);
-      setTimeout(() => setJustDroppedId(null), 700);
+    if (isDroppedInBacklog) {
+      setTaskStatus(focusTask.id, 'backlog');
+      setFocusCardOffset(undefined);
+    } else {
+      // Liquid spring back to center in In Focus
+      setFocusCardOffset({ x: target.x, y: target.y });
+      requestAnimationFrame(() => {
+        setFocusCardOffset({ x: 0, y: 0 });
+      });
     }
-    setIsDragOverFocus(false);
-    setDraggedTaskId(null);
-    setDragSource(null);
-  };
-
-  // Drop onto BACKLOG Column
-  const handleDragOverBacklog = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (!isDragOverBacklog && dragSource === 'in_focus') {
-      setIsDragOverBacklog(true);
-    }
-  };
-
-  const handleDragLeaveBacklog = (e: React.DragEvent) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setIsDragOverBacklog(false);
-    }
-  };
-
-  const handleDropOnBacklog = (e: React.DragEvent) => {
-    e.preventDefault();
-    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
-    if (taskId && dragSource === 'in_focus') {
-      setTaskStatus(taskId, 'backlog');
-    }
-    setIsDragOverBacklog(false);
-    setDraggedTaskId(null);
-    setDragSource(null);
   };
 
   const handlePromoteClick = (taskId: string) => {
@@ -301,7 +310,7 @@ export const AgileBoard: React.FC = () => {
   return (
     <>
       <ConfettiCanvas ref={confettiRef} />
-      <main className="flex-1 p-3.5 sm:p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-[var(--bg-canvas)] relative transition-colors duration-300">
+      <main className="flex-1 p-3.5 sm:p-5 flex flex-col gap-3 min-h-0 overflow-hidden select-none bg-transparent relative transition-colors duration-300">
         {/* Top Celebration Banner on Screen */}
         {isAllDone && showCelebrationBanner && (
           <div className="px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-primary/15 via-[var(--bg-inset)] to-[var(--accent-audio)]/15 border border-primary/30 shadow-mint-glow flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 animate-banner-slide-down shrink-0">
@@ -345,102 +354,93 @@ export const AgileBoard: React.FC = () => {
           {/* COLUMN 1: TODAY'S BACKLOG (Col span 4)                                   */}
           {/* ========================================================================= */}
           <section
-        onDragOver={handleDragOverBacklog}
-        onDragLeave={handleDragLeaveBacklog}
-        onDrop={handleDropOnBacklog}
-        className={`col-span-4 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative overflow-hidden ${
-          isDragOverBacklog
-            ? 'border-[var(--accent-audio)] ring-2 ring-[var(--accent-audio)]/30 bg-[var(--accent-audio)]/[0.03] scale-[1.006]'
-            : 'border-[var(--border-card)]'
-        }`}
-      >
-        {isSageTheme && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] overflow-hidden">
-            <KonohaLeafWatermark className="w-72 h-72 text-amber-300" />
-          </div>
-        )}
-        {/* Header: Column title and active count badge */}
-        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-slate-400" />
-            <h2 className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
-              Today's Backlog
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <PlasmaBadge variant="outline" size="sm" className="hidden sm:inline-flex text-[10px]">
-              Drag to Focus
-            </PlasmaBadge>
-            <PlasmaBadge variant="muted" size="sm" mono>
-              {backlogTasks.length}
-            </PlasmaBadge>
-          </div>
-        </div>
-
-        {/* Drag Over Backlog Drop Indicator */}
-        {isDragOverBacklog && (
-          <div className="mb-3 py-2.5 px-3 rounded-xl border-2 border-dashed border-[var(--accent-audio)] bg-[var(--accent-audio)]/10 text-[var(--accent-audio)] font-bold text-[11px] flex items-center justify-center gap-2 animate-pulse">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Drop here to return task to Backlog</span>
-          </div>
-        )}
-
-        {/* Task Cards List */}
-        <div className="flex-1 space-y-2.5 overflow-y-auto pr-1">
-          {isAllDone && (
-            <div className="py-7 px-4 rounded-xl bg-[var(--bg-inset)]/40 border border-dashed border-primary/25 flex flex-col items-center justify-center text-center animate-card-enter my-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary mb-2 shadow-mint-glow">
-                <CheckCircle2 className="w-5 h-5" />
+            ref={backlogColRef}
+            className="col-span-4 flex flex-col bg-[var(--bg-card)]/35 backdrop-blur-sm rounded-xl border border-[var(--border-card)]/60 p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative overflow-hidden"
+          >
+            {isSageTheme && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.035] overflow-hidden">
+                <KonohaLeafWatermark className="w-72 h-72 text-amber-300" />
               </div>
-              <div className="text-xs font-bold text-slate-200">Backlog 100% Cleared!</div>
-              <div className="text-[11px] text-slate-400 mt-1 max-w-[190px] leading-relaxed">
-                Zero pending tasks remaining. Everything scheduled for today is done!
+            )}
+            {/* Header: Column title and active count badge */}
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-slate-400" />
+                <h2 className="text-[11px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
+                  Today's Backlog
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <PlasmaBadge variant="outline" size="sm" className="hidden sm:inline-flex text-[10px]">
+                  Drag to Focus
+                </PlasmaBadge>
+                <PlasmaBadge variant="muted" size="sm" mono>
+                  {backlogTasks.length}
+                </PlasmaBadge>
               </div>
             </div>
-          )}
 
-          {backlogTasks.length === 0 && !isAllDone && !isAddingTask && (
-            <div className="py-8 px-4 rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center my-4 bg-white/[0.01]">
-              <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-500 mb-2">
-                <Plus className="w-4 h-4" />
-              </div>
-              <p className="text-xs font-medium text-slate-400">Backlog is empty</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Add your tasks for today's sprint below
-              </p>
-            </div>
-          )}
+            {/* Task Cards List */}
+            <div className="flex-1 space-y-2.5 overflow-y-auto pr-1">
+              {isAllDone && (
+                <div className="py-7 px-4 rounded-xl bg-[var(--bg-inset)]/40 border border-dashed border-primary/25 flex flex-col items-center justify-center text-center animate-card-enter my-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center text-primary mb-2 shadow-mint-glow">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div className="text-xs font-bold text-slate-200">Backlog 100% Cleared!</div>
+                  <div className="text-[11px] text-slate-400 mt-1 max-w-[190px] leading-relaxed">
+                    Zero pending tasks remaining. Everything scheduled for today is done!
+                  </div>
+                </div>
+              )}
 
-          {backlogTasks.map((task) => {
-            const isBeingDragged = draggedTaskId === task.id;
-            const taskDurationMin = task.durationMinutes ?? 25;
-            const isTaskUntimed = taskDurationMin === 0;
-            const isEditingDuration = editingDurationTaskId === task.id;
+              {backlogTasks.length === 0 && !isAllDone && !isAddingTask && (
+                <div className="py-8 px-4 rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center text-center my-4 bg-white/[0.01]">
+                  <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/10 flex items-center justify-center text-slate-500 mb-2">
+                    <Plus className="w-4 h-4" />
+                  </div>
+                  <p className="text-xs font-medium text-slate-400">Backlog is empty</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Add your tasks for today's sprint below
+                  </p>
+                </div>
+              )}
 
-            return (
-              <div
-                key={task.id}
-                draggable={true}
-                onDragStart={(e) => handleDragStartFromBacklog(e, task.id)}
-                onDragEnd={handleDragEnd}
-                className="cursor-grab active:cursor-grabbing"
-              >
-                <PlasmaCard
-                  elevation={0.2}
-                  radius={14}
-                  className={`group relative p-3 transition-all duration-200 hover:-translate-y-[0.5px] ${
-                    isBeingDragged
-                      ? 'opacity-35 scale-95 border-dashed border-[var(--accent-primary)]/80 rotate-1 shadow-lg'
-                      : 'hover:border-white/20 hover:shadow-card'
-                  }`}
-                  title={
-                    focusTask
-                      ? pomodoro.isRunning
-                        ? 'Slot locked: Active timer running in In Focus'
-                        : 'Slot occupied: Complete or return active task to Backlog first'
-                      : 'Drag into In Focus to start work'
-                  }
-                >
+              {backlogTasks.map((task) => {
+                const isBeingDragged = activeDraggingId === task.id;
+                const taskDurationMin = task.durationMinutes ?? 25;
+                const isTaskUntimed = taskDurationMin === 0;
+                const isEditingDuration = editingDurationTaskId === task.id;
+
+                return (
+                  <PlasmaCard
+                    key={task.id}
+                    ref={(el) => {
+                      if (el) cardRefs.current.set(task.id, el);
+                      else cardRefs.current.delete(task.id);
+                    }}
+                    elevation={isBeingDragged ? 0.7 : 0.25}
+                    radius={14}
+                    draggable={true}
+                    snap={false}
+                    lean={14}
+                    fuse={true}
+                    offset={cardOffsets[task.id]}
+                    onDragStart={() => handleBacklogCardDragStart(task.id)}
+                    onDragEnd={(target) => handleBacklogCardDragEnd(task.id, target)}
+                    className={`group relative p-3 transition-colors duration-150 ${
+                      isBeingDragged
+                        ? 'z-30 border-[var(--accent-primary)] ring-1 ring-[var(--accent-primary)]/50 shadow-2xl'
+                        : 'hover:border-white/25 hover:shadow-card'
+                    }`}
+                    title={
+                      focusTask
+                        ? pomodoro.isRunning
+                          ? 'Slot locked: Active timer running in In Focus'
+                          : 'Slot occupied: Complete or return active task to Backlog first'
+                        : 'Drag into In Focus to start work'
+                    }
+                  >
                   {/* Title & Grip / Hover Actions */}
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-start gap-1.5 flex-1 min-w-0">
@@ -566,9 +566,8 @@ export const AgileBoard: React.FC = () => {
                     </PlasmaBadge>
                   </div>
                 </PlasmaCard>
-              </div>
-            );
-          })}
+              );
+            })}
 
           {/* Inline Add Task Form (when open) */}
           {isAddingTask && (
@@ -677,19 +676,13 @@ export const AgileBoard: React.FC = () => {
       {/* COLUMN 2: IN FOCUS (HERO ACTIVE CARD) (Col span 5)                       */}
       {/* ========================================================================= */}
       <section
-        onDragOver={handleDragOverFocus}
-        onDragLeave={handleDragLeaveFocus}
-        onDrop={handleDropOnFocus}
-        className={`col-span-5 flex flex-col bg-[var(--bg-card)] rounded-xl border p-3 sm:p-4 relative overflow-hidden min-h-0 transition-all duration-200 ${
+        ref={focusColRef}
+        className={`col-span-5 flex flex-col bg-[var(--bg-card)]/35 backdrop-blur-sm rounded-xl border p-3 sm:p-4 relative overflow-hidden min-h-0 transition-all duration-200 ${
           isSageTheme && focusTask !== null
             ? 'chakra-flame-aura border-[#FF6B00]'
-            : isDragOverFocus && focusTask !== null
-            ? 'border-amber-500/60 ring-2 ring-amber-500/30 bg-amber-500/[0.04]'
-            : isDragOverFocus && focusTask === null
-            ? 'border-primary ring-2 ring-primary/40 bg-primary/[0.04] shadow-[0_0_35px_var(--glow-primary)] scale-[1.008]'
             : focusTask !== null
             ? 'border-primary/40 shadow-[0_0_24px_var(--glow-primary-subtle)]'
-            : 'border-[var(--border-card)]'
+            : 'border-[var(--border-card)]/60'
         }`}
       >
         {isSageTheme && (
@@ -715,7 +708,7 @@ export const AgileBoard: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono text-[#94A3B8]">
-              {focusTask ? (pomodoro.isRunning ? 'Timer Active' : 'Slot Occupied') : 'Drop Target'}
+              {focusTask ? (pomodoro.isRunning ? 'Timer Active' : 'Slot Occupied') : 'Drag Target'}
             </span>
             <PlasmaBadge
               variant={focusTask ? 'primary' : 'muted'}
@@ -727,26 +720,6 @@ export const AgileBoard: React.FC = () => {
           </div>
         </div>
 
-        {/* Prohibited Drop Alert or Active Guide */}
-        {isDragOverFocus && focusTask !== null && (
-          <div className="mb-3 py-2.5 px-3 rounded-xl border border-amber-500/50 bg-amber-500/15 text-amber-300 font-bold text-[11px] flex items-center justify-center gap-2 animate-pulse relative z-20">
-            <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-            <span>
-              {pomodoro.isRunning
-                ? 'Timer Running — Complete or return active task to Backlog first'
-                : 'Slot Occupied — Complete or return active task to Backlog first'}
-            </span>
-          </div>
-        )}
-
-        {/* Drop Guide when slot is empty */}
-        {isDragOverFocus && focusTask === null && (
-          <div className="mb-3 py-3 px-4 rounded-xl border-2 border-dashed border-primary bg-primary/15 text-primary font-bold text-[12px] flex items-center justify-center gap-2 shadow-mint-glow animate-pulse relative z-20">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span>Drop here to start focusing!</span>
-          </div>
-        )}
-
         {/* Blocked Alert Banner */}
         {blockedAlert && (
           <div className="mb-3 py-2 px-3 rounded-xl border border-rose-500/40 bg-rose-500/15 text-rose-200 text-[11.5px] flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-1 relative z-20">
@@ -757,22 +730,27 @@ export const AgileBoard: React.FC = () => {
 
         {/* Active Hero Card vs Empty State */}
         {focusTask ? (
-          <div
+          <PlasmaCard
+            ref={focusCardRef}
+            elevation={activeDraggingId === focusTask.id ? 0.75 : 0.45}
+            radius={18}
+            active={true}
             draggable={true}
-            onDragStart={(e) => handleDragStartFromFocus(e, focusTask.id)}
-            onDragEnd={handleDragEnd}
-            className="flex-1 flex flex-col min-h-0 cursor-grab active:cursor-grabbing"
-            title="Drag back to Backlog to free slot"
+            snap={false}
+            lean={12}
+            fuse={true}
+            offset={focusCardOffset}
+            onDragStart={handleFocusCardDragStart}
+            onDragEnd={handleFocusCardDragEnd}
+            className={`flex-1 flex flex-col justify-between p-4 relative z-10 transition-colors duration-200 ${
+              justDroppedId === focusTask.id ? 'animate-drop-glow animate-card-enter' : ''
+            } ${
+              activeDraggingId === focusTask.id
+                ? 'z-30 border-dashed border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-2xl'
+                : ''
+            }`}
+            title="Drag left toward Backlog to return task"
           >
-            <PlasmaCard
-              elevation={0.65}
-              radius={18}
-              active={true}
-              fuse={false}
-              className={`flex-1 flex flex-col justify-between p-4 relative z-10 transition-all duration-300 ${
-                justDroppedId === focusTask.id ? 'animate-drop-glow animate-card-enter' : ''
-              } ${draggedTaskId === focusTask.id ? 'opacity-40 scale-95 border-dashed border-[var(--accent-secondary)]' : ''}`}
-            >
               <div>
                 {/* Category badge pill alongside completed/estimated Pomodoros */}
                 <div className="flex items-center justify-between mb-3">
@@ -946,7 +924,6 @@ export const AgileBoard: React.FC = () => {
                 </PlasmaButton>
               </div>
             </PlasmaCard>
-          </div>
         ) : isAllDone ? (
           <CompletionCelebration
             doneCount={doneTasks.length}
@@ -971,7 +948,7 @@ export const AgileBoard: React.FC = () => {
       {/* ========================================================================= */}
       {/* COLUMN 3: DONE TODAY (Col span 3)                                         */}
       {/* ========================================================================= */}
-      <section className="col-span-3 flex flex-col bg-[var(--bg-card)] rounded-xl border border-[var(--border-card)] p-3 sm:p-4 shadow-card min-h-0">
+      <section className="col-span-3 flex flex-col bg-[var(--bg-card)]/35 backdrop-blur-sm rounded-xl border border-[var(--border-card)]/60 p-3 sm:p-4 shadow-card min-h-0">
         {/* Header: Title and count badge */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">
           <div className="flex items-center gap-2">
