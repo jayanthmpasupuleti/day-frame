@@ -20,6 +20,8 @@ import { useDayframeStore } from '../store/useDayframeStore';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { focusDesktopApp } from '../utils/platform';
 
+const MAGIC_LINK_RESEND_COOLDOWN_SECONDS = 60;
+
 export const AuthModal: React.FC = () => {
   const isAuthModalOpen = useDayframeStore((s) => s.isAuthModalOpen);
   const closeAuthModal = useDayframeStore((s) => s.closeAuthModal);
@@ -49,6 +51,9 @@ export const AuthModal: React.FC = () => {
 
   // Resend cooldown timer
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendCooldownEmail, setResendCooldownEmail] = useState('');
+  const isResendCoolingDown =
+    resendCooldown > 0 && resendCooldownEmail === email.trim().toLowerCase();
 
   // Active handoff flow ID
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
@@ -190,7 +195,8 @@ export const AuthModal: React.FC = () => {
   // Dispatch Magic Link with desktop handoff parameters
   const handleSendMagicLink = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!email.trim()) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || isLoading || isResendCoolingDown) return;
 
     if (!isSupabaseConfigured || !supabase) {
       setStatusMessage({
@@ -210,12 +216,12 @@ export const AuthModal: React.FC = () => {
       const redirectUrl =
         typeof window !== 'undefined'
           ? `${window.location.origin}/?auth_handoff=${newFlowId}&email=${encodeURIComponent(
-              email.trim().toLowerCase()
+              normalizedEmail
             )}`
           : undefined;
 
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
+        email: normalizedEmail,
         options: {
           emailRedirectTo: redirectUrl,
         },
@@ -225,7 +231,6 @@ export const AuthModal: React.FC = () => {
         setStatusMessage({ type: 'error', text: error.message });
       } else {
         setMagicLinkStep('awaiting');
-        setResendCooldown(30);
         setStatusMessage(null);
         // Focus first OTP input on transition
         setTimeout(() => {
@@ -238,6 +243,8 @@ export const AuthModal: React.FC = () => {
         text: err?.message || 'Failed to send magic link. Please check your network connection.',
       });
     } finally {
+      setResendCooldownEmail(normalizedEmail);
+      setResendCooldown(MAGIC_LINK_RESEND_COOLDOWN_SECONDS);
       setIsLoading(false);
     }
   };
@@ -702,12 +709,14 @@ export const AuthModal: React.FC = () => {
                   <div className="flex items-center justify-between pt-2 border-t border-[var(--border-card)] text-[11px]">
                     <button
                       type="button"
-                      disabled={resendCooldown > 0 || isLoading}
+                      disabled={isResendCoolingDown || isLoading}
                       onClick={() => handleSendMagicLink()}
                       className="text-primary hover:underline transition-colors flex items-center gap-1 cursor-pointer disabled:text-slate-600 disabled:no-underline"
                     >
                       <RotateCcw className="w-3 h-3" />
-                      <span>{resendCooldown > 0 ? `Resend email (${resendCooldown}s)` : 'Resend email'}</span>
+                      <span>
+                        {isResendCoolingDown ? `Resend email (${resendCooldown}s)` : 'Resend email'}
+                      </span>
                     </button>
 
                     <button
@@ -790,7 +799,7 @@ export const AuthModal: React.FC = () => {
 
                       <button
                         type="submit"
-                        disabled={isLoading || !email.trim()}
+                        disabled={isLoading || !email.trim() || isResendCoolingDown}
                         className="w-full py-2.5 px-4 rounded-xl bg-primary text-primaryText font-bold text-xs hover:brightness-110 shadow-mint-btn transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoading ? (
@@ -800,8 +809,12 @@ export const AuthModal: React.FC = () => {
                           </>
                         ) : (
                           <>
-                            <span>Send Passwordless Magic Link</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                            <span>
+                              {isResendCoolingDown
+                                ? `Try again in ${resendCooldown}s`
+                                : 'Send Passwordless Magic Link'}
+                            </span>
+                            {!isResendCoolingDown && <ArrowRight className="w-3.5 h-3.5" />}
                           </>
                         )}
                       </button>
