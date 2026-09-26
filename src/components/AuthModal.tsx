@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useDayframeStore } from '../store/useDayframeStore';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
-import { focusDesktopApp } from '../utils/platform';
+import { focusDesktopApp, isTauriApp } from '../utils/platform';
 import { Plasma } from './plasma';
 
 const MAGIC_LINK_RESEND_COOLDOWN_SECONDS = 60;
@@ -59,6 +59,9 @@ export const AuthModal: React.FC = () => {
   // Active handoff flow ID
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null);
 
+  // Active OAuth provider being authorized in browser
+  const [oauthProvider, setOauthProvider] = useState<'google' | 'apple' | null>(null);
+
   const [statusMessage, setStatusMessage] = useState<{
     type: 'success' | 'error' | 'info';
     text: string;
@@ -84,6 +87,8 @@ export const AuthModal: React.FC = () => {
       setIsLoading(false);
       setIsVerifyingOtp(false);
       setMagicLinkStep('request');
+      setOauthProvider(null);
+      setActiveFlowId(null);
       setOtpDigits(['', '', '', '', '', '']);
       setShowPasteLink(false);
       setPastedUrl('');
@@ -128,15 +133,18 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  // Background listeners for Magic Link verification (Realtime Broadcast + Dev Server Bridge)
+  // Background listeners for Magic Link & OAuth verification (Realtime Broadcast + Dev Server Bridge)
   useEffect(() => {
-    if (!isAuthModalOpen || magicLinkStep !== 'awaiting' || !email.trim() || !supabase) {
+    const isAwaitingMagicLink = magicLinkStep === 'awaiting' && Boolean(email.trim());
+    const isAwaitingOAuth = Boolean(oauthProvider && activeFlowId);
+
+    if (!isAuthModalOpen || (!isAwaitingMagicLink && !isAwaitingOAuth) || !supabase) {
       return;
     }
 
     let isSubscribed = true;
     const flowId = activeFlowId || 'default';
-    const sanitizedEmailKey = btoa(email.toLowerCase().trim()).replace(/=/g, '');
+    const sanitizedEmailKey = email.trim() ? btoa(email.toLowerCase().trim()).replace(/=/g, '') : null;
 
     // 1. Realtime Broadcast: Flow-specific channel
     const flowChannel = supabase.channel(`auth_handoff_${flowId}`);
@@ -145,22 +153,27 @@ export const AuthModal: React.FC = () => {
         if (!isSubscribed) return;
         const session = eventPayload.payload?.session;
         if (session) {
+          setOauthProvider(null);
           handleSuccessfulAuth(session);
         }
       })
       .subscribe();
 
-    // 2. Realtime Broadcast: Email-keyed channel (fallback if flow ID is altered)
-    const emailChannel = supabase.channel(`auth_handoff_email_${sanitizedEmailKey}`);
-    emailChannel
-      .on('broadcast', { event: 'session_transfer' }, (eventPayload) => {
-        if (!isSubscribed) return;
-        const session = eventPayload.payload?.session;
-        if (session) {
-          handleSuccessfulAuth(session);
-        }
-      })
-      .subscribe();
+    // 2. Realtime Broadcast: Email-keyed channel (fallback if flow ID is altered, when email is known)
+    let emailChannel: any = null;
+    if (sanitizedEmailKey) {
+      emailChannel = supabase.channel(`auth_handoff_email_${sanitizedEmailKey}`);
+      emailChannel
+        .on('broadcast', { event: 'session_transfer' }, (eventPayload: any) => {
+          if (!isSubscribed) return;
+          const session = eventPayload.payload?.session;
+          if (session) {
+            setOauthProvider(null);
+            handleSuccessfulAuth(session);
+          }
+        })
+        .subscribe();
+    }
 
     // 3. Polling local dev server HTTP bridge (/api/auth-bridge)
     const pollInterval = setInterval(async () => {
@@ -168,13 +181,14 @@ export const AuthModal: React.FC = () => {
       try {
         const queryParams = new URLSearchParams();
         if (flowId) queryParams.set('flow', flowId);
-        queryParams.set('email', email.trim().toLowerCase());
+        if (email.trim()) queryParams.set('email', email.trim().toLowerCase());
 
         const res = await fetch(`/api/auth-bridge?${queryParams.toString()}`);
         if (res.ok) {
           const data = await res.json();
           if (data.found && data.session && isSubscribed) {
             clearInterval(pollInterval);
+            setOauthProvider(null);
             handleSuccessfulAuth(data.session);
           }
         }
@@ -187,9 +201,9 @@ export const AuthModal: React.FC = () => {
       isSubscribed = false;
       clearInterval(pollInterval);
       flowChannel.unsubscribe();
-      emailChannel.unsubscribe();
+      if (emailChannel) emailChannel.unsubscribe();
     };
-  }, [isAuthModalOpen, magicLinkStep, activeFlowId, email]);
+  }, [isAuthModalOpen, magicLinkStep, activeFlowId, email, oauthProvider]);
 
   if (!isAuthModalOpen) return null;
 
@@ -451,26 +465,80 @@ export const AuthModal: React.FC = () => {
     setActiveFlowId(newFlowId);
 
     try {
-      const redirectUrl =
-        typeof window !== 'undefined'
-          ? `${window.location.origin}/?auth_handoff=${newFlowId}`
-          : undefined;
+      const origin =
+        typeof window !== 'undefined' &&
+        window.location.origin &&
+        !window.location.origin.startsWith('tauri://')
+          ? window.location.origin
+          : 'http://localhost:1420';
+      const redirectUrl = `${origin}/?auth_handoff=${newFlowId}`;
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
         },
       });
 
       if (error) {
-        setStatusMessage({ type: 'error', text: error.message });
+        setStatusMessage({
+          type: 'error',
+          text: error.message.includes('not enabled')
+            ? `${provider === 'google' ? 'Google' : 'Apple'} Sign-In is not enabled in your Supabase project. Please enable it in Supabase Dashboard (Authentication -> Providers).`
+            : error.message,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        // Pre-check if the OAuth provider is enabled in Supabase
+        try {
+          const checkRes = await fetch(data.url, {
+            headers: {
+              apikey: (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || '',
+            },
+          });
+          if (checkRes.status === 400) {
+            const errData = await checkRes.json().catch(() => null);
+            if (
+              errData?.msg?.toLowerCase().includes('not enabled') ||
+              errData?.error_code === 'validation_failed'
+            ) {
+              setStatusMessage({
+                type: 'error',
+                text: `${provider === 'google' ? 'Google' : 'Apple'} Sign-In is not enabled in your Supabase project. Enable it in your Supabase Dashboard (Authentication > Providers > ${provider === 'google' ? 'Google' : 'Apple'}) with your OAuth Client ID and Secret.`,
+              });
+              setIsLoading(false);
+              return;
+            }
+          }
+        } catch {
+          // Pre-check network error, proceed with browser opening
+        }
+
+        // Set provider to awaiting state so background listener activates
+        setOauthProvider(provider);
+
+        // Open in external default browser (Safari/Chrome)
+        if (isTauriApp()) {
+          try {
+            const { openUrl } = await import('@tauri-apps/plugin-opener');
+            await openUrl(data.url);
+          } catch {
+            window.open(data.url, '_blank');
+          }
+        } else {
+          window.location.href = data.url;
+        }
       }
     } catch (err: any) {
       setStatusMessage({
         type: 'error',
         text: err?.message || `Failed to sign in with ${provider}.`,
       });
+      setOauthProvider(null);
     } finally {
       setIsLoading(false);
     }
@@ -616,8 +684,43 @@ export const AuthModal: React.FC = () => {
                 </div>
               )}
 
-              {/* Magic Link Step 2: Awaiting Verification (OTP + Browser Click Detection) */}
-              {authMode === 'magic-link' && magicLinkStep === 'awaiting' ? (
+              {/* OAuth Awaiting Browser Authorization Screen */}
+              {oauthProvider ? (
+                <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
+                  <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 text-center space-y-2">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center mx-auto mb-1">
+                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    </div>
+                    <div className="text-xs font-bold text-white tracking-tight">
+                      Complete {oauthProvider === 'google' ? 'Google' : 'Apple'} Sign-In
+                    </div>
+                    <p className="text-[11.5px] text-slate-300 leading-relaxed max-w-xs mx-auto">
+                      Please finish signing in via the opened browser window. Dayframe will automatically sync and log you in.
+                    </p>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[var(--bg-inset)] border border-[var(--border-card)] flex items-center gap-2.5 text-xs text-slate-300">
+                    <div className="relative flex h-2.5 w-2.5 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary" />
+                    </div>
+                    <p className="text-[11px] leading-snug">
+                      <strong className="text-white">Waiting for browser authorization:</strong> You will be returned directly into Dayframe.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOauthProvider(null);
+                      setStatusMessage(null);
+                    }}
+                    className="w-full py-2 px-3 rounded-xl bg-[var(--bg-inset)] hover:bg-white/10 text-slate-300 hover:text-white border border-[var(--border-card)] text-xs font-medium transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : authMode === 'magic-link' && magicLinkStep === 'awaiting' ? (
                 <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
                   {/* Sent Confirmation Badge */}
                   <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-center space-y-1">
