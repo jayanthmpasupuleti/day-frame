@@ -191,6 +191,4 @@ export function applyPlasmaThemeToDom(config: PlasmaThemeConfig) {
   root.style.setProperty('--accent-secondary', config.rimColor);
   root.style.setProperty('--plasma-tint', config.tint);
   root.style.setProperty('--plasma-rim', config.rimColor);
-  root.style.setProperty('--plasma-rim-glow', `color-mix(in srgb, ${config.rimColor} 35%, transparent)`);
-  root.style.setProperty('--glow-secondary', `color-mix(in srgb, ${config.rimColor} 40%, transparent)`);
 }

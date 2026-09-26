@@ -411,18 +411,18 @@ export const AgileBoard: React.FC = () => {
           <Plasma
             ref={backlogColRef as any}
             as="section"
-            elevation={0.35}
-            radius={28}
-            lean={0}
+            elevation={0.25}
+            radius={18}
+            lean={6}
             fuse={false}
-            className={`col-span-4 flex flex-col bg-[var(--bg-card)]/20 rounded-[28px] border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative ${
+            className={`col-span-4 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[18px] border p-3 sm:p-4 shadow-card min-h-0 transition-all duration-200 relative ${
               activeDraggingId
                 ? 'z-50 overflow-visible'
                 : 'z-10 overflow-hidden'
             } ${
               isHoveringBacklog
-                ? 'border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-[0_0_28px_var(--glow-secondary,rgba(56,189,248,0.35))]'
-                : 'plasma-section-border'
+                ? 'border-[var(--accent-secondary)] ring-2 ring-[var(--accent-secondary)]/40 shadow-[0_0_25px_var(--glow-secondary,rgba(56,189,248,0.3))]'
+                : 'border-[var(--border-card)]/50'
             }`}
           >
             {isSageTheme && (
@@ -746,20 +746,20 @@ export const AgileBoard: React.FC = () => {
       <Plasma
         ref={focusColRef as any}
         as="section"
-        elevation={0.45}
-        radius={28}
-        lean={0}
+        elevation={0.35}
+        radius={20}
+        lean={8}
         fuse={false}
-        className={`col-span-5 flex flex-col bg-[var(--bg-card)]/20 rounded-[28px] border p-3 sm:p-4 relative min-h-0 transition-all duration-200 ${
+        className={`col-span-5 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[20px] border p-3 sm:p-4 relative min-h-0 transition-all duration-200 ${
           isSageTheme && focusTask !== null
-            ? 'chakra-flame-aura border-[#FF6B00] shadow-[0_0_35px_rgba(255,107,0,0.4)]'
+            ? 'chakra-flame-aura border-[#FF6B00]'
             : isHoveringFocus && focusTask === null
             ? 'border-[var(--accent-primary)] ring-2 ring-[var(--accent-primary)]/50 shadow-[0_0_35px_var(--glow-primary)] scale-[1.008]'
             : isHoveringFocus && focusTask !== null
-            ? 'border-amber-500/70 ring-2 ring-amber-500/40 shadow-[0_0_28px_rgba(245,158,11,0.3)]'
+            ? 'border-amber-500/70 ring-2 ring-amber-500/40 shadow-[0_0_25px_rgba(245,158,11,0.25)]'
             : focusTask !== null
-            ? 'plasma-section-border-focus'
-            : 'plasma-section-border'
+            ? 'border-[var(--accent-primary)]/40 shadow-[0_0_24px_var(--glow-primary-subtle)]'
+            : 'border-[var(--border-card)]/50'
         } ${activeDraggingId === focusTask?.id ? 'z-50 overflow-visible' : 'z-10 overflow-hidden'}`}
       >
         {isSageTheme && (
@@ -1042,11 +1042,11 @@ export const AgileBoard: React.FC = () => {
       {/* ========================================================================= */}
       <Plasma
         as="section"
-        elevation={0.35}
-        radius={28}
-        lean={0}
+        elevation={0.25}
+        radius={18}
+        lean={6}
         fuse={false}
-        className="col-span-3 flex flex-col bg-[var(--bg-card)]/20 rounded-[28px] border plasma-section-border p-3 sm:p-4 shadow-card min-h-0 relative z-10 overflow-hidden"
+        className="col-span-3 flex flex-col bg-[var(--bg-card)]/30 backdrop-blur-md rounded-[18px] border border-[var(--border-card)]/50 p-3 sm:p-4 shadow-card min-h-0 relative z-10 overflow-hidden"
       >
         {/* Header: Title and count badge */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-card)]">

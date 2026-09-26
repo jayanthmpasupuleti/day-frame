@@ -102,22 +102,19 @@ export const App: React.FC = () => {
       frost={plasmaTheme.frost}
       elevation={plasmaTheme.elevation}
       rimColor={plasmaTheme.rimColor}
-      dispersion={2}
-      rim={1.6}
-      rimWidth={1.3}
-      edgeLine={1.4}
-      shimmer={1.4}
-      shimmerSpeed={2}
-      glow={1.4}
-      highlight={0.6}
-      radius={28}
-      viscosity={0.6}
-      stretch={0}
+      stretch={1.8}
+      viscosity={0.35}
       flow={0}
-      blend={40}
-      tension={0.1}
+      blend={45}
+      tension={0.15}
       pointerDrop={true}
       pointerPull={true}
+      shimmer={1.2}
+      shimmerSpeed={3}
+      rim={1.4}
+      rimWidth={1.5}
+      highlight={1.2}
+      radius={20}
       maxSurfaces={36}
       canvas={false}
     >
@@ -131,7 +128,7 @@ export const App: React.FC = () => {
         <div className="fixed inset-0 bg-dot-matrix ambient-glow pointer-events-none opacity-40 transition-all duration-300" />
 
         {/* Primary Mac Window Dashboard Container */}
-        <div className="relative w-full h-full bg-[var(--bg-canvas)]/40 border border-[var(--border-card)]/40 shadow-window flex flex-col overflow-hidden z-10 transition-colors duration-300">
+        <div className="relative w-full h-full bg-[var(--bg-canvas)]/30 border border-[var(--border-card)]/50 shadow-window flex flex-col overflow-hidden backdrop-blur-md z-10 transition-colors duration-300">
           {/* Top: Mac Window Chrome & Header */}
           <TitleBar />
 
